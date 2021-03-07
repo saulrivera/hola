@@ -15,7 +15,7 @@ class GatewayDataSchedule(
     private val appProperties: AppProperties
 ) {
     @Bean
-    fun main() {
+    fun telemetryDataTracking() {
         Timer().schedule(0, appProperties.appTracingFrequency.toLong()) {
             GlobalScope.launch {
                 tracingManager.traceBeacons()
