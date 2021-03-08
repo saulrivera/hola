@@ -31,7 +31,6 @@ dependencies {
 	implementation("io.ktor:ktor-client-cio:1.5.2")
 	implementation("com.google.code.gson:gson:2.8.6")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
-	implementation("com.google.firebase:firebase-admin:6.2.0")
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
 }
 
