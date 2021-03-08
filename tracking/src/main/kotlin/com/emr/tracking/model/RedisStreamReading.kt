@@ -10,6 +10,7 @@ data class RedisStreamReading(
     var deviceId: String,
     var gatewayId: String,
     var rssi: Double,
+    var calibratedRssi1m: Double,
     var gatewayHistories: Map<String, RedisGatewayParameters>
 ) : Serializable
 

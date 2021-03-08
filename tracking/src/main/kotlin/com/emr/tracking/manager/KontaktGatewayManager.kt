@@ -9,6 +9,7 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import org.springframework.stereotype.Component
+import java.io.File
 import java.lang.Exception
 import java.time.Instant
 
@@ -49,8 +50,12 @@ class KontaktGatewayManager(
             httpClient.close()
 
             val data = Gson().fromJson(response.readText(), KontaktTelemetryResponse::class.java)
-            return data.content.filter { it.model == 27 }
+            val beacons = data.content.filter { it.model == 27 }
+//            saveData(beacons.groupBy { it.uniqueId })
+
+            return beacons
         } catch (error: Exception) {
+            print(error)
             return emptyList()
         }
     }
@@ -73,9 +78,21 @@ class KontaktGatewayManager(
 
             val data = Gson().fromJson(response.readText(), KontaktDeviceResponse::class.java)
             listOfGateways = data.devices.map { it.uniqueId }
+
             return listOfGateways
         } catch (error: Exception) {
+            print(error)
             return emptyList()
         }
+    }
+
+    private fun saveData(data: Map<String, List<KontaktGatewayResponse>>) {
+        val file = File("./data/${Instant.now()}")
+        if (!file.parentFile.exists()) {
+            file.parentFile.mkdirs()
+        }
+
+        val jsonData = Gson().toJson(data)
+        file.writeText(jsonData)
     }
 }

@@ -25,4 +25,7 @@ class AppProperties {
 
     @Value("\${app.tracing.kalmanfilter.q}")
     lateinit var appTracingKalmanFilterQ: String
+
+    @Value("\${app.tracing.environmentFactor}")
+    lateinit var appTracingEnvironmentFactor: String
 }

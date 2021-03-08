@@ -7,6 +7,7 @@ data class KontaktTelemetryResponse(
 data class KontaktGatewayResponse(
     var sourceId: String,
     var rssi: Double,
+    var calibratedRssi1m: Double?,
     var model: Int,
     var uniqueId: String
 )

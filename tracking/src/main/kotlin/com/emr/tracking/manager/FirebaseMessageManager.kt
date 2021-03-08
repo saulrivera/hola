@@ -16,12 +16,12 @@ class FirebaseMessageManager(
         if (readings.count() == 0)
             return
 
-//        val transformedReading = readings.map { it.deviceId to it.gatewayId }.toMap()
-//        val message = Message.builder()
-//            .putAllData(transformedReading)
-//            .setTopic(appProperties.firebaseTopic)
-//            .build()
-//
-//        FirebaseMessaging.getInstance().send(message)
+        val transformedReading = readings.map { it.deviceId to it.gatewayId }.toMap()
+        val message = Message.builder()
+            .putAllData(transformedReading)
+            .setTopic(appProperties.firebaseTopic)
+            .build()
+
+        FirebaseMessaging.getInstance().send(message)
     }
 }

@@ -1,19 +1,14 @@
 package com.emr.tracking.manager
 
 import com.emr.tracking.configuration.AppProperties
-import com.emr.tracking.model.KontaktGatewayResponse
-import com.emr.tracking.model.RedisGatewayNode
-import com.emr.tracking.model.RedisGatewayParameters
-import com.emr.tracking.model.RedisStreamReading
+import com.emr.tracking.configuration.WebSocketConfiguration
+import com.emr.tracking.model.*
 import com.emr.tracking.repository.Neo4jGatewayRepository
 import com.emr.tracking.repository.RedisGatewayNodeRepository
 import com.emr.tracking.repository.RedisStreamRepository
 import com.emr.tracking.utils.KalmanFilter
-import com.google.gson.Gson
 import org.springframework.stereotype.Component
-import java.io.File
-import java.time.Instant
-import kotlin.math.abs
+import kotlin.math.pow
 
 @Component
 class TracingManager(
@@ -21,16 +16,14 @@ class TracingManager(
     private val redisGatewayNodeRepository: RedisGatewayNodeRepository,
     private val neo4jGatewayRepository: Neo4jGatewayRepository,
     private val kontaktGatewayManager: KontaktGatewayManager,
-    private val firebaseMessageManager: FirebaseMessageManager,
-    private val appProperties: AppProperties
+    private val appProperties: AppProperties,
+    private val webSocketConfiguration: WebSocketConfiguration
 ) {
     suspend fun traceBeacons() {
         val gatewayIds = kontaktGatewayManager.getListOfGateways()
         val detections = kontaktGatewayManager.retrieveDataForGateway(gatewayIds)
 
         val groupedDevices = detections.groupBy { it.uniqueId }
-
-//        saveData(groupedDevices)
 
         val readings = groupedDevices.map { v ->
             val deviceId = v.key
@@ -47,10 +40,16 @@ class TracingManager(
                         appProperties.appTracingKalmanFilterQ.toDouble()
                     )
                     it.rssi = filter.filter(it.rssi)
-                    it.sourceId to RedisGatewayParameters(filter.A, filter.B, filter.C, filter.cov, filter.x)
+                    it.sourceId to RedisGatewayParameters(
+                        filter.A,
+                        filter.B,
+                        filter.C,
+                        filter.cov,
+                        filter.x
+                    )
                 }.toMap()
 
-                maxGateway = detectedGateways.maxByOrNull { it.rssi }
+                maxGateway = calculateClosestGateway(detectedGateways)
             } else {
                 val lastGatewayId = lastStream.get().gatewayId
                 val nearGateways: MutableList<String>
@@ -66,15 +65,17 @@ class TracingManager(
                 }
 
                 nearGateways.add(lastGatewayId)
-                val filteredGateways = detectedGateways.filter { nearGateways.contains(it.sourceId) }.toMutableList()
+                val filteredGateways = detectedGateways
+                    .filter { nearGateways.contains(it.sourceId) }
+                    .toMutableList()
 
                 val lastNewReading = filteredGateways.firstOrNull { it.sourceId == lastGatewayId }
-
                 if (lastNewReading == null) {
                     filteredGateways.add(
                         KontaktGatewayResponse(
                             lastGatewayId,
                             lastStream.get().rssi,
+                            lastStream.get().calibratedRssi1m,
                             27,
                             lastStream.get().deviceId)
                     )
@@ -99,50 +100,63 @@ class TracingManager(
                         )
                     }
                     it.rssi = filter.filter(it.rssi)
-                    it.sourceId to RedisGatewayParameters(filter.A, filter.B, filter.C, filter.cov, filter.x)
+                    it.sourceId to RedisGatewayParameters(
+                        filter.A,
+                        filter.B,
+                        filter.C,
+                        filter.cov,
+                        filter.x
+                    )
                 }.toMap()
 
-                maxGateway = filteredGateways.maxByOrNull { it.rssi }
+                maxGateway = calculateClosestGateway(filteredGateways)
             }
 
-             deviceId to RedisStreamReading(deviceId, maxGateway!!.sourceId, maxGateway.rssi, parameters)
+             deviceId to RedisStreamReading(
+                 deviceId,
+                 maxGateway!!.sourceId,
+                 maxGateway.rssi,
+                 maxGateway.calibratedRssi1m!!,
+                 parameters
+             )
         }.toMap()
 
-//        val relevantIncidences = processRelevantIncidences(readings)
-        firebaseMessageManager.publishReadingUpdates(readings.values.toList())
-        redisStreamRepository.saveAll(readings.values.toList())
+        val relevantIncidencesForSocket = processRelevantIncidences(readings)
+        if (relevantIncidencesForSocket.count() > 0) {
+            webSocketConfiguration
+                .tracingHandler()
+                .broadcastTracking(relevantIncidencesForSocket)
+        }
 
-        print("\u001b[H\u001b[2J")
-        println("")
-        redisStreamRepository.findAll().sortedBy { it.deviceId }.forEach {
-            println("Device ${it.deviceId} is close to gateway ${it.gatewayId} with power ${it.rssi}")
+        redisStreamRepository.saveAll(readings.values.toList())
+    }
+
+    private fun calculateClosestGateway(gateways: List<KontaktGatewayResponse>): KontaktGatewayResponse? {
+        return gateways.maxByOrNull { it.rssi }
+    }
+
+    fun processRelevantIncidences(newReadings: Map<String, RedisStreamReading>): List<SocketTracingStream> {
+        val oldReadings = redisStreamRepository.findAll().map { it.deviceId to it }.toMap()
+
+        val upgradeReadings = mutableListOf<RedisStreamReading>()
+        newReadings.forEach { (deviceId, reading) ->
+             val oldReading = oldReadings[deviceId]
+
+             if (oldReading == null) {
+                 upgradeReadings.add(reading)
+             } else {
+                 if (oldReading.gatewayId != reading.gatewayId) {
+                     upgradeReadings.add(reading)
+                 }
+             }
+        }
+
+        return upgradeReadings.map {
+            SocketTracingStream(it.deviceId, it.gatewayId, it.rssi, it.calibratedRssi1m)
         }
     }
 
-//    fun processRelevantIncidences(newReadings: Map<String, RedisStreamReading>): List<RedisStreamReading> {
-//        val oldReadings = redisStreamRepository.findAll().map { it.deviceId to it }.toMap()
-//
-//        val upgradeReadings = mutableListOf<RedisStreamReading>()
-//        newReadings.map { (deviceId, reading) ->
-//             val oldReading = oldReadings[deviceId]
-//
-//             if (oldReading == null)
-//                upgradeReadings.add(reading)
-//
-//             if (oldReading!!.gatewayId != reading.gatewayId)
-//                 upgradeReadings.add(reading)
-//        }
-//
-//        return upgradeReadings
-//    }
-
-    fun saveData(data: Map<String, List<KontaktGatewayResponse>>) {
-        val file = File("./data/${Instant.now()}")
-        if (!file.parentFile.exists()) {
-            file.parentFile.mkdirs()
-        }
-
-        val jsonData = Gson().toJson(data)
-        file.writeText(jsonData)
+    private fun calculateDistance(txRSSI: Double, pwRSSI: Double): Double {
+        return 10.0.pow((txRSSI - pwRSSI) / (-10.0 * appProperties.appTracingEnvironmentFactor.toDouble()))
     }
 }
