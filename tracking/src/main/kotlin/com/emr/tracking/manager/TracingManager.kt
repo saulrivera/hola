@@ -6,6 +6,7 @@ import com.emr.tracking.model.*
 import com.emr.tracking.repository.Neo4jGatewayRepository
 import com.emr.tracking.repository.RedisGatewayNodeRepository
 import com.emr.tracking.repository.RedisStreamRepository
+import com.emr.tracking.utils.AnalyticsUtils
 import com.emr.tracking.utils.KalmanFilter
 import org.springframework.stereotype.Component
 import kotlin.math.pow
@@ -17,13 +18,16 @@ class TracingManager(
     private val neo4jGatewayRepository: Neo4jGatewayRepository,
     private val kontaktGatewayManager: KontaktGatewayManager,
     private val appProperties: AppProperties,
-    private val webSocketConfiguration: WebSocketConfiguration
+    private val webSocketConfiguration: WebSocketConfiguration,
+    private val analyticsUtils: AnalyticsUtils
 ) {
     suspend fun traceBeacons() {
         val gatewayIds = kontaktGatewayManager.getListOfGateways()
         val detections = kontaktGatewayManager.retrieveDataForGateway(gatewayIds)
 
         val groupedDevices = detections.groupBy { it.uniqueId }
+
+        analyticsUtils.saveRowData(groupedDevices)
 
         val readings = groupedDevices.map { v ->
             val deviceId = v.key
@@ -48,6 +52,8 @@ class TracingManager(
                         filter.x
                     )
                 }.toMap()
+
+                analyticsUtils.saveProcessedData(deviceId, detectedGateways)
 
                 maxGateway = calculateClosestGateway(detectedGateways)
             } else {
@@ -108,6 +114,8 @@ class TracingManager(
                         filter.x
                     )
                 }.toMap()
+
+                analyticsUtils.saveProcessedData(deviceId, filteredGateways)
 
                 maxGateway = calculateClosestGateway(filteredGateways)
             }
