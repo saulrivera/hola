@@ -5,6 +5,9 @@ import org.springframework.stereotype.Component
 
 @Component
 class AppProperties {
+    @Value("\${application.name}")
+    lateinit var applicationName: String
+
     @Value("\${redis.host}")
     lateinit var redisHost: String
 
@@ -17,9 +20,6 @@ class AppProperties {
     @Value("\${app.tracing.frequency}")
     lateinit var appTracingFrequency: String
 
-    @Value("\${firebase.topic}")
-    lateinit var firebaseTopic: String
-
     @Value("\${app.tracing.kalmanfilter.r}")
     lateinit var appTracingKalmanFilterR: String
 
@@ -28,4 +28,10 @@ class AppProperties {
 
     @Value("\${app.tracing.environmentFactor}")
     lateinit var appTracingEnvironmentFactor: String
+
+    @Value("\${aws.region}")
+    lateinit var awsRegion: String
+
+    @Value("\${aws.stream_name}")
+    lateinit var awsStreamName: String
 }

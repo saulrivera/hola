@@ -32,6 +32,7 @@ dependencies {
 	implementation("com.google.code.gson:gson:2.8.6")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
+	implementation("software.amazon.kinesis:amazon-kinesis-client:2.3.4")
 }
 
 tasks.withType<KotlinCompile> {

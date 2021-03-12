@@ -11,7 +11,6 @@ data class Neo4jGateway (
     @GeneratedValue
     var id: Long? = null,
     var uniqueId: String,
-    var sourceId: String? = null,
     @Relationship(type = "SIBLINGS")
     var siblings: MutableList<Neo4jGateway>? = null
 )

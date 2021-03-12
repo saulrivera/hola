@@ -1,6 +1,6 @@
 package com.emr.tracking.configuration
 
-import com.emr.tracking.model.RedisGatewayDirectory
+import com.emr.tracking.model.RedisBeacon
 import com.emr.tracking.model.RedisGatewayNode
 import com.emr.tracking.model.RedisStreamReading
 import org.springframework.context.annotation.Bean
@@ -34,8 +34,8 @@ class RedisConfiguration(
     }
 
     @Bean
-    fun redisGatewayDirectoryTemplate(): RedisTemplate<String, RedisGatewayDirectory> {
-        val redisTemplate = RedisTemplate<String, RedisGatewayDirectory>()
+    fun redisBeaconTemplate(): RedisTemplate<String, RedisBeacon> {
+        val redisTemplate = RedisTemplate<String, RedisBeacon>()
         redisTemplate.setConnectionFactory(letucceConnectionFactory())
         return redisTemplate
     }

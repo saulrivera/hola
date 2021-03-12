@@ -43,6 +43,7 @@ class TrackingSocket : TextWebSocketHandler() {
 
     fun broadcastTracking(data: Any) {
         val message = Message("tracing", data)
+        println(message)
         broadcast(message)
     }
 }
