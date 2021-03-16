@@ -1,7 +1,8 @@
 package com.emr.tracking.manager
 
 import com.emr.tracking.configuration.AppProperties
-import com.emr.tracking.model.KontaktBeaconResponse
+import com.emr.tracking.model.KontaktDevice
+import com.emr.tracking.model.KontaktDeviceResponse
 import com.emr.tracking.model.RedisBeacon
 import com.emr.tracking.repository.RedisBeaconRepository
 import com.google.gson.Gson
@@ -11,30 +12,20 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import org.springframework.stereotype.Component
 
-
 @Component
 class KontaktioManager(
     private val redisBeaconRepository: RedisBeaconRepository,
     private val appProperties: AppProperties
 ) {
-    suspend fun beaconList(): List<RedisBeacon> {
-        val redisBeacons = retrieveBeaconsFromRedis()
-
-        return if (redisBeacons.isEmpty()) {
-            val kontactBeacons = retrieveBeaconsFromKontakt()
-            kontactBeacons.forEach { it.mac = it.mac.toLowerCase() }
-            redisBeaconRepository.saveAll(kontactBeacons)
-            kontactBeacons
-        } else {
-            redisBeacons
-        }
+    suspend fun beaconList(): List<KontaktDevice> {
+        return retrieveDeviceOfType(DeviceType.BEACON)
     }
 
-    private fun retrieveBeaconsFromRedis(): List<RedisBeacon> {
-        return redisBeaconRepository.findAll().toList()
+    suspend fun gatewayList(): List<KontaktDevice> {
+        return retrieveDeviceOfType(DeviceType.GATEWAY)
     }
 
-    private suspend fun retrieveBeaconsFromKontakt(): List<RedisBeacon> {
+    private suspend fun retrieveDeviceOfType(type: DeviceType): List<KontaktDevice> {
         try {
             val httpClient = HttpClient(CIO)
             val response = httpClient.get<HttpResponse>("https://api.kontakt.io/device") {
@@ -42,14 +33,21 @@ class KontaktioManager(
                     append("Api-Key", appProperties.kontaktApiKey)
                     append("Accept", "application/vnd.com.kontakt+json;version=10")
                 }
-                parameter("deviceType", "BEACON")
+                when(type) {
+                    DeviceType.BEACON -> parameter("deviceType", "BEACON")
+                    DeviceType.GATEWAY -> parameter("deviceType", "GATEWAY")
+                }
             }
             httpClient.close()
 
-            return Gson().fromJson(response.readText(), KontaktBeaconResponse::class.java).devices
+            return Gson().fromJson(response.readText(), KontaktDeviceResponse::class.java).devices
         } catch (error: Exception) {
             println(error)
             return listOf()
         }
+    }
+
+    enum class DeviceType {
+        BEACON, GATEWAY
     }
 }

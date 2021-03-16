@@ -5,8 +5,9 @@ import org.springframework.data.redis.core.RedisHash
 import java.io.Serializable
 
 @RedisHash("Gateway")
-data class RedisGatewayNode(
+data class RedisGateway(
     @Id
     val gatewayId: String,
+    val position: Pair<Double, Double>,
     val siblings: List<String>
 ) : Serializable

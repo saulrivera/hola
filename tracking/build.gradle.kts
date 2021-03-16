@@ -33,6 +33,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
 	implementation("software.amazon.kinesis:amazon-kinesis-client:2.3.4")
+	implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 }
 
 tasks.withType<KotlinCompile> {

@@ -3,9 +3,8 @@ package com.emr.tracking.manager
 import com.emr.tracking.configuration.AppProperties
 import com.emr.tracking.configuration.WebSocketConfiguration
 import com.emr.tracking.model.*
-import com.emr.tracking.repository.Neo4jGatewayRepository
 import com.emr.tracking.repository.RedisBeaconRepository
-import com.emr.tracking.repository.RedisGatewayNodeRepository
+import com.emr.tracking.repository.RedisGatewayRepository
 import com.emr.tracking.repository.RedisStreamRepository
 import com.emr.tracking.utils.KalmanFilter
 import org.springframework.stereotype.Component
@@ -13,15 +12,14 @@ import kotlin.math.pow
 
 @Component
 class TracingManager(
-    private val redisStreamRepository: RedisStreamRepository,
-    private val redisGatewayNodeRepository: RedisGatewayNodeRepository,
-    private val neo4jGatewayRepository: Neo4jGatewayRepository,
     private val appProperties: AppProperties,
+    private val redisBeaconRepository: RedisBeaconRepository,
+    private val redisStreamRepository: RedisStreamRepository,
+    private val redisGatewayRepository: RedisGatewayRepository,
     private val webSocketConfiguration: WebSocketConfiguration,
-    private val kontaktioManager: KontaktioManager
 ) {
-    suspend fun processBeaconStream(stream: KontaktTelemetryResponse) {
-        if (!kontaktioManager.beaconList().any { it.mac == stream.trackingId })  {
+    fun processBeaconStream(stream: KontaktTelemetryResponse) {
+        if (redisBeaconRepository.findById(stream.trackingId).isEmpty) {
             return
         }
 
@@ -41,19 +39,8 @@ class TracingManager(
 
         val lastGatewayId = streamMemory.gatewayId
 
-        val redisGateway = redisGatewayNodeRepository.findById(lastGatewayId)
-        val nearGateways = if (redisGateway.isPresent) {
-            redisGateway.get().siblings.toMutableList()
-        } else {
-            neo4jGatewayRepository.findNearSiblingsByUniqueId(lastGatewayId)
-                .map { it.uniqueId }
-                .toMutableList()
-        }
-
-        if (redisGateway.isEmpty) {
-            nearGateways.add(lastGatewayId)
-            redisGatewayNodeRepository.save(RedisGatewayNode(lastGatewayId, nearGateways))
-        }
+        val redisGateway = redisGatewayRepository.findById(lastGatewayId).get()
+        val nearGateways = redisGateway.siblings
 
         if (!nearGateways.contains(stream.sourceId)) {
             return
@@ -102,16 +89,23 @@ class TracingManager(
             streamMemory.calibratedRssi1m = stream.calibratedRssi1m
         }
 
-//        if (isRelevantIncidence(streamMemory)) {
+        val gateway = redisGatewayRepository.findById(streamMemory.gatewayId).get()
+        val webSocketMessage = StreamSocket(
+            streamMemory.trackingId,
+            streamMemory.rssi,
+            streamMemory.calibratedRssi1m,
+            StreamSocketGateway(
+                gateway.gatewayId,
+                gateway.position.first,
+                gateway.position.second
+            )
+        )
+        println("WebSocket message: $webSocketMessage")
+        synchronized(webSocketConfiguration.tracingHandler()) {
             webSocketConfiguration
                 .tracingHandler()
-                .broadcastTracking(mapOf(
-                    "trackingId" to streamMemory.trackingId,
-                    "gatewayId" to streamMemory.gatewayId,
-                    "rssi" to streamMemory.rssi,
-                    "calibratedRssi1m" to streamMemory.calibratedRssi1m
-                ))
-//        }
+                .broadcastTracking(webSocketMessage)
+        }
 
         redisStreamRepository.save(streamMemory)
     }

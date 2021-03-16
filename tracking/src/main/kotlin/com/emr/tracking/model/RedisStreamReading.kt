@@ -14,3 +14,11 @@ data class RedisStreamReading(
     var calibratedRssi1m: Double,
     var gatewayHistories: MutableMap<String, RedisGatewayParameters>
 ) : Serializable
+
+data class RedisGatewayParameters(
+    var a: Double,
+    var b: Double,
+    var c: Double,
+    var cov: Double,
+    var x: Double
+) : Serializable

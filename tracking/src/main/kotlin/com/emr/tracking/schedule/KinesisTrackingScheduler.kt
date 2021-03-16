@@ -4,6 +4,8 @@ import com.emr.tracking.configuration.AppProperties
 import com.emr.tracking.manager.TracingManager
 import com.emr.tracking.model.KontaktTelemetryResponse
 import com.google.gson.Gson
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
@@ -27,7 +29,13 @@ import java.util.concurrent.ExecutionException
 import org.apache.commons.lang3.RandomUtils
 import software.amazon.awssdk.core.SdkBytes
 import org.apache.commons.lang3.RandomStringUtils
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest
+import software.amazon.kinesis.common.InitialPositionInStream
+import software.amazon.kinesis.common.InitialPositionInStreamExtended
+import kotlin.math.log
 
 @Component
 class KinesisTrackingScheduler(
@@ -56,8 +64,6 @@ class KinesisTrackingScheduler(
         )
 
         val pollingConfig = PollingConfig(appProperties.awsStreamName, kinesisClient)
-        pollingConfig.recordsFetcherFactory().idleMillisBetweenCalls(appProperties.appTracingFrequency.toLong())
-        pollingConfig.idleTimeBetweenReadsInMillis(appProperties.appTracingFrequency.toLong())
 
         val scheduler = Scheduler(
             configsBuilder.checkpointConfig(),
@@ -66,7 +72,8 @@ class KinesisTrackingScheduler(
             configsBuilder.lifecycleConfig(),
             configsBuilder.metricsConfig(),
             configsBuilder.processorConfig(),
-            configsBuilder.retrievalConfig().retrievalSpecificConfig(pollingConfig)
+            configsBuilder.retrievalConfig()
+                .retrievalSpecificConfig(pollingConfig)
         )
 
         val schedulerThread = Thread(scheduler)
@@ -87,51 +94,77 @@ class KinesisManager(
     private val tracingManager: TracingManager
 ) : ShardRecordProcessor {
 
+    companion object {
+        const val SHARD_ID_MDC_KEY = "ShardId"
+        var shardId = ""
+        val logger: Logger = LoggerFactory.getLogger(KinesisManager::class.java)
+    }
+
     override fun initialize(initializationInput: InitializationInput?) {
-        println("Initialization completed")
+        if (initializationInput != null) {
+            shardId = initializationInput.shardId()
+            MDC.put(SHARD_ID_MDC_KEY, shardId)
+            try {
+                logger.info("Initializing @ sequence: ${initializationInput.extendedSequenceNumber()}")
+            } finally {
+                MDC.remove(SHARD_ID_MDC_KEY)
+            }
+        }
     }
 
     override fun processRecords(processRecordsInput: ProcessRecordsInput?) {
-        processRecordsInput?.records()?.forEach {
+        if (processRecordsInput != null) {
+            MDC.put(SHARD_ID_MDC_KEY, shardId)
             try {
-                val originalData = StandardCharsets.UTF_8.decode(it.data())
-                val response = Gson().fromJson(originalData.toString(), KontaktTelemetryResponse::class.java)
-                runBlocking {
+                logger.info("Processing ${processRecordsInput.records().size}")
+                processRecordsInput.records()?.forEach {
+                    val originalData = StandardCharsets.UTF_8.decode(it.data())
+                    val response = Gson().fromJson(originalData.toString(), KontaktTelemetryResponse::class.java)
+                    logger.info("Processing response: $originalData, with object: $response")
                     tracingManager.processBeaconStream(response)
                 }
-            } catch (e: Exception) {
-                println("Error parsing record $e")
+            } catch (e: Throwable) {
+                logger.error("Caught throwable while processing records. Aborting.")
+            } finally {
+                MDC.remove(SHARD_ID_MDC_KEY)
             }
-        }
-
-        try {
-            processRecordsInput?.checkpointer()?.checkpoint()
-        } catch (e: Exception) {
-            println("Error during processing of records : $e")
         }
     }
 
     override fun leaseLost(leaseLostInput: LeaseLostInput?) {
-        println("LeaseLostInput $leaseLostInput")
+        MDC.put(SHARD_ID_MDC_KEY, shardId)
+        try {
+            logger.info("Lost lease, so terminating $leaseLostInput")
+        } finally {
+            MDC.remove(SHARD_ID_MDC_KEY)
+        }
     }
 
     override fun shardEnded(shardEndedInput: ShardEndedInput?) {
+        MDC.put(SHARD_ID_MDC_KEY, shardId)
         try {
+            logger.info("Reached shard end checkpointing.")
             shardEndedInput?.checkpointer()?.checkpoint()
         } catch (e: ShutdownException) {
-            e.printStackTrace()
+            logger.error("Exception while checkpointing at shard end. Giving up. $e")
         } catch (e: InvalidStateException) {
-            e.printStackTrace()
+            logger.error("Exception while checkpointing at shard end. Giving up. $e")
+        } finally {
+            MDC.remove(SHARD_ID_MDC_KEY)
         }
     }
 
     override fun shutdownRequested(shutdownRequestedInput: ShutdownRequestedInput?) {
+        MDC.put(SHARD_ID_MDC_KEY, shardId);
         try {
+            logger.info("Scheduler is shutting down, checkpointing.")
             shutdownRequestedInput?.checkpointer()?.checkpoint()
         } catch (e: ShutdownException) {
-            e.printStackTrace()
+            logger.error("Exception while checkpointing at requested shutdown. Giving up. $e")
         } catch (e: InvalidStateException) {
-            e.printStackTrace()
+            logger.error("Exception while checkpointing at requested shutdown. Giving up. $e")
+        } finally {
+            MDC.remove(SHARD_ID_MDC_KEY)
         }
     }
 }
