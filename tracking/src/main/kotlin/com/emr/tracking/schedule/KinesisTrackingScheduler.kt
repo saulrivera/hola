@@ -124,7 +124,7 @@ class KinesisManager(
                     tracingManager.processBeaconStream(response)
                 }
             } catch (e: Throwable) {
-                logger.error("Caught throwable while processing records. Aborting.")
+                logger.error("Caught throwable while processing records. Aborting. $e")
             } finally {
                 MDC.remove(SHARD_ID_MDC_KEY)
             }

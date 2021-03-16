@@ -1,5 +1,6 @@
 package com.emr.tracking.manager
 
+import com.emr.tracking.DataInit
 import com.emr.tracking.configuration.AppProperties
 import com.emr.tracking.configuration.WebSocketConfiguration
 import com.emr.tracking.model.*
@@ -17,8 +18,15 @@ class TracingManager(
     private val redisStreamRepository: RedisStreamRepository,
     private val redisGatewayRepository: RedisGatewayRepository,
     private val webSocketConfiguration: WebSocketConfiguration,
+    private val dataInit: DataInit
 ) {
     fun processBeaconStream(stream: KontaktTelemetryResponse) {
+        if (redisBeaconRepository.count() == 0.toLong() ||
+            redisGatewayRepository.count() == 0.toLong()) {
+            dataInit.populateBeacons()
+            dataInit.populateGateways()
+        }
+
         if (redisBeaconRepository.findById(stream.trackingId).isEmpty) {
             return
         }
