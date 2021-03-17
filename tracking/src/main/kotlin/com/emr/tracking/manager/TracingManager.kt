@@ -105,15 +105,14 @@ class TracingManager(
             StreamSocketGateway(
                 gateway.gatewayId,
                 gateway.position.first,
-                gateway.position.second
+                gateway.position.second,
+                gateway.floor
             )
         )
-        println("WebSocket message: $webSocketMessage")
-        synchronized(webSocketConfiguration.tracingHandler()) {
-            webSocketConfiguration
-                .tracingHandler()
-                .broadcastTracking(webSocketMessage)
-        }
+
+        webSocketConfiguration
+            .tracingHandler()
+            .broadcastTracking(webSocketMessage)
 
         redisStreamRepository.save(streamMemory)
     }

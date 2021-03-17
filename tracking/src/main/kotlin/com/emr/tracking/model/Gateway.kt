@@ -6,5 +6,6 @@ data class Gateway(
     @Id
     val uniqueId: String,
     val mac: String,
-    val position: Pair<Double, Double> = Pair(0.0, 10.0)
+    val floor: Int,
+    val position: Pair<Double, Double> = Pair(-10.0, 5.2)
 )

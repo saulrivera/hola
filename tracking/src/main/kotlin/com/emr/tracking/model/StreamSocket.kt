@@ -10,5 +10,6 @@ data class StreamSocket(
 data class StreamSocketGateway(
     val gatewayId: String,
     val coordinateX: Double,
-    val coordinateY: Double
+    val coordinateY: Double,
+    val floor: Int
 )

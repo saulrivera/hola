@@ -25,7 +25,7 @@ class DataInit(
         runBlocking {
             val gatewayDevices = kontaktioManager.gatewayList()
             if (gatewayRepository.count() == 0.toLong()) {
-                val gateways = gatewayDevices.map { Gateway(it.uniqueId, it.properties!!.mac.toLowerCase()) }
+                val gateways = gatewayDevices.map { Gateway(it.uniqueId, it.properties!!.mac.toLowerCase(), 0) }
                 gatewayRepository.saveAll(gateways)
             }
 
@@ -37,7 +37,7 @@ class DataInit(
                         .toMutableList()
                     siblings.add(it.uniqueId)
                     val gateway = gatewayRepository.findById(it.uniqueId).get()
-                    RedisGateway(it.uniqueId, gateway.position, siblings)
+                    RedisGateway(it.uniqueId, gateway.position, siblings, gateway.floor)
                 }
                 redisGatewayRepository.saveAll(redisGateway)
             }

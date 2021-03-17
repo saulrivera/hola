@@ -9,5 +9,6 @@ data class RedisGateway(
     @Id
     val gatewayId: String,
     val position: Pair<Double, Double>,
-    val siblings: List<String>
+    val siblings: List<String>,
+    val floor: Int
 ) : Serializable
