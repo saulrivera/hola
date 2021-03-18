@@ -79,7 +79,7 @@ class TracingManager(
             }
         }
 
-        stream.rssi = kalmanFilter.filter(stream.rssi)
+//        stream.rssi = kalmanFilter.filter(stream.rssi)
 
         val parameters = RedisGatewayParameters(
             kalmanFilter.A,
