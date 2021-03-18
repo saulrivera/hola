@@ -74,6 +74,9 @@ class KinesisTrackingScheduler(
             configsBuilder.processorConfig(),
             configsBuilder.retrievalConfig()
                 .retrievalSpecificConfig(pollingConfig)
+                .initialPositionInStreamExtended(
+                    InitialPositionInStreamExtended.newInitialPosition(InitialPositionInStream.LATEST)
+                )
         )
 
         val schedulerThread = Thread(scheduler)
@@ -123,6 +126,7 @@ class KinesisManager(
                     logger.info("Processing response: $originalData, with object: $response")
                     tracingManager.processBeaconStream(response)
                 }
+                processRecordsInput.checkpointer().checkpoint()
             } catch (e: Throwable) {
                 logger.error("Caught throwable while processing records. Aborting. $e")
             } finally {
@@ -155,7 +159,7 @@ class KinesisManager(
     }
 
     override fun shutdownRequested(shutdownRequestedInput: ShutdownRequestedInput?) {
-        MDC.put(SHARD_ID_MDC_KEY, shardId);
+        MDC.put(SHARD_ID_MDC_KEY, shardId)
         try {
             logger.info("Scheduler is shutting down, checkpointing.")
             shutdownRequestedInput?.checkpointer()?.checkpoint()
