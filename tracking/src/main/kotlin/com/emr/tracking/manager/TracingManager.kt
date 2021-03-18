@@ -79,6 +79,9 @@ class TracingManager(
             }
         }
 
+        if (stream.sourceId == streamMemory.gatewayId) {
+            streamMemory.rssi = stream.rssi
+        }
 //        stream.rssi = kalmanFilter.filter(stream.rssi)
 
         val parameters = RedisGatewayParameters(
