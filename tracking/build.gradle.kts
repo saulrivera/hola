@@ -30,10 +30,9 @@ dependencies {
 	implementation("io.ktor:ktor-client-core:1.5.2")
 	implementation("io.ktor:ktor-client-cio:1.5.2")
 	implementation("com.google.code.gson:gson:2.8.6")
-	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	implementation("com.rethinkdb:rethinkdb-driver:2.3.3")
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
 	implementation("software.amazon.kinesis:amazon-kinesis-client:2.3.4")
-	implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 }
 
 tasks.withType<KotlinCompile> {

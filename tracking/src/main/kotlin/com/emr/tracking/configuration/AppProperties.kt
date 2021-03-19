@@ -8,12 +8,6 @@ class AppProperties {
     @Value("\${application.name}")
     lateinit var applicationName: String
 
-    @Value("\${redis.host}")
-    lateinit var redisHost: String
-
-    @Value("\${redis.port}")
-    lateinit var redisPort: String
-
     @Value("\${kontakt.io.apiKey}")
     lateinit var kontaktApiKey: String
 
@@ -34,4 +28,13 @@ class AppProperties {
 
     @Value("\${aws.stream_name}")
     lateinit var awsStreamName: String
+
+    @Value("\${rethink.host}")
+    lateinit var rethinkHost: String
+
+    @Value("\${rethink.port}")
+    lateinit var rethinkPort: String
+
+    @Value("\${rethink.database}")
+    lateinit var rethinkDatabase: String
 }

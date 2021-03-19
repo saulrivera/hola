@@ -3,8 +3,6 @@ package com.emr.tracking.manager
 import com.emr.tracking.configuration.AppProperties
 import com.emr.tracking.model.KontaktDevice
 import com.emr.tracking.model.KontaktDeviceResponse
-import com.emr.tracking.model.RedisBeacon
-import com.emr.tracking.repository.RedisBeaconRepository
 import com.google.gson.Gson
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class KontaktioManager(
-    private val redisBeaconRepository: RedisBeaconRepository,
     private val appProperties: AppProperties
 ) {
     suspend fun beaconList(): List<KontaktDevice> {

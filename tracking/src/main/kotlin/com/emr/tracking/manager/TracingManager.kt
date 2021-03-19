@@ -1,60 +1,39 @@
 package com.emr.tracking.manager
 
-import com.emr.tracking.DataInit
 import com.emr.tracking.configuration.AppProperties
 import com.emr.tracking.configuration.WebSocketConfiguration
 import com.emr.tracking.model.*
-import com.emr.tracking.repository.RedisBeaconRepository
-import com.emr.tracking.repository.RedisGatewayRepository
-import com.emr.tracking.repository.RedisStreamRepository
+import com.emr.tracking.repository.BeaconRepository
+import com.emr.tracking.repository.GatewayRepository
+import com.emr.tracking.repository.StreamRepository
 import com.emr.tracking.utils.KalmanFilter
 import org.springframework.stereotype.Component
-import kotlin.math.pow
 
 @Component
 class TracingManager(
     private val appProperties: AppProperties,
-    private val redisBeaconRepository: RedisBeaconRepository,
-    private val redisStreamRepository: RedisStreamRepository,
-    private val redisGatewayRepository: RedisGatewayRepository,
+    private val streamRepository: StreamRepository,
+    private val beaconRepository: BeaconRepository,
+    private val gatewayRepository: GatewayRepository,
     private val webSocketConfiguration: WebSocketConfiguration,
-    private val dataInit: DataInit
 ) {
     fun processBeaconStream(stream: KontaktTelemetryResponse) {
-        if (redisBeaconRepository.count() == 0.toLong() ||
-            redisGatewayRepository.count() == 0.toLong()) {
-            dataInit.populateBeacons()
-            dataInit.populateGateways()
-        }
-
-        if (redisBeaconRepository.findById(stream.trackingId).isEmpty) {
+        if (!beaconRepository.isBeaconPresent(stream.trackingId)) {
             return
         }
 
-        val streamMemoryOptional = redisStreamRepository.findById(stream.trackingId)
-
-        val streamMemory = if (streamMemoryOptional.isPresent) {
-            streamMemoryOptional.get()
-        } else {
-            RedisStreamReading(
-                stream.trackingId,
-                stream.sourceId,
-                stream.rssi,
-                stream.calibratedRssi1m,
-                mutableMapOf()
-            )
-        }
+        val streamMemory = streamRepository.findById(stream)
 
         val lastGatewayId = streamMemory.gatewayId
 
-        val redisGateway = redisGatewayRepository.findById(lastGatewayId).get()
+        val redisGateway = gatewayRepository.findByUniqueId(lastGatewayId) ?: return
         val nearGateways = redisGateway.siblings
 
         if (!nearGateways.contains(stream.sourceId)) {
             return
         }
 
-        val kalmanFilter = if (!streamMemoryOptional.isPresent) {
+        val kalmanFilter = if (streamMemory.gatewayHistories.isEmpty()) {
             KalmanFilter(
                 appProperties.appTracingKalmanFilterR.toDouble(),
                 appProperties.appTracingKalmanFilterQ.toDouble()
@@ -84,7 +63,7 @@ class TracingManager(
         }
 //        stream.rssi = kalmanFilter.filter(stream.rssi)
 
-        val parameters = RedisGatewayParameters(
+        val parameters = GatewayParameters(
             kalmanFilter.A,
             kalmanFilter.B,
             kalmanFilter.C,
@@ -100,13 +79,13 @@ class TracingManager(
             streamMemory.calibratedRssi1m = stream.calibratedRssi1m
         }
 
-        val gateway = redisGatewayRepository.findById(streamMemory.gatewayId).get()
+        val gateway = gatewayRepository.findByUniqueId(streamMemory.gatewayId) ?: return
         val webSocketMessage = StreamSocket(
             streamMemory.trackingId,
             streamMemory.rssi,
             streamMemory.calibratedRssi1m,
             StreamSocketGateway(
-                gateway.gatewayId,
+                gateway.uniqueId,
                 gateway.position.first,
                 gateway.position.second,
                 gateway.floor
@@ -117,22 +96,6 @@ class TracingManager(
             .tracingHandler()
             .broadcastTracking(webSocketMessage)
 
-        redisStreamRepository.save(streamMemory)
-    }
-
-    fun isRelevantIncidence(streamReading: RedisStreamReading): Boolean {
-        val streamMemoryOptional = redisStreamRepository.findById(streamReading.trackingId)
-        if (streamMemoryOptional.isEmpty) {
-            return true
-        }
-        val streamMemory = streamMemoryOptional.get()
-        if (streamMemory.gatewayId != streamReading.gatewayId) {
-            return true
-        }
-        return false
-    }
-
-    private fun calculateDistance(txRSSI: Double, pwRSSI: Double): Double {
-        return 10.0.pow((txRSSI - pwRSSI) / (-10.0 * appProperties.appTracingEnvironmentFactor.toDouble()))
+        streamRepository.update(streamMemory)
     }
 }

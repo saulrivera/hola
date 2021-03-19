@@ -1,21 +1,18 @@
 package com.emr.tracking.model
 
 import org.springframework.data.annotation.Id
-import org.springframework.data.redis.core.RedisHash
 import java.io.Serializable
-import javax.annotation.Generated
+import java.util.*
 
-@RedisHash("StreamReading")
-data class RedisStreamReading(
-    @Id
+data class StreamReading(
     var trackingId: String,
     var gatewayId: String,
     var rssi: Double,
     var calibratedRssi1m: Double,
-    var gatewayHistories: MutableMap<String, RedisGatewayParameters>
+    var gatewayHistories: MutableMap<String, GatewayParameters>
 ) : Serializable
 
-data class RedisGatewayParameters(
+data class GatewayParameters(
     var a: Double,
     var b: Double,
     var c: Double,
