@@ -17,5 +17,6 @@ data class GatewayParameters(
     var b: Double,
     var c: Double,
     var cov: Double,
-    var x: Double
+    var x: Double,
+    var rssi: Double
 ) : Serializable

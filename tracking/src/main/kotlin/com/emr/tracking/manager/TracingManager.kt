@@ -24,15 +24,19 @@ class TracingManager(
 
         val streamMemory = streamRepository.findById(stream)
 
-        val lastGatewayId = streamMemory.gatewayId
-
-        val redisGateway = gatewayRepository.findByUniqueId(lastGatewayId) ?: return
-        val nearGateways = redisGateway.siblings
-
-        if (!nearGateways.contains(stream.sourceId)) {
-            return
+        // Updates reading if comes from the same source
+        if (stream.sourceId == streamMemory.gatewayId) {
+            streamMemory.rssi = stream.rssi
         }
 
+        // Discards all nodes that are not closed to the last seen position
+        val lastGatewayId = streamMemory.gatewayId
+        val redisGateway = gatewayRepository.findByUniqueId(lastGatewayId) ?: return
+        val nearGateways = redisGateway.siblings
+        if (!nearGateways.contains(stream.sourceId))
+            return
+
+        // Loads all kalman parameters
         val kalmanFilter = if (streamMemory.gatewayHistories.isEmpty()) {
             KalmanFilter(
                 appProperties.appTracingKalmanFilterR.toDouble(),
@@ -58,26 +62,23 @@ class TracingManager(
             }
         }
 
-        if (stream.sourceId == streamMemory.gatewayId) {
-            streamMemory.rssi = stream.rssi
-        }
+        // Recalculates and updates history of record from specific gateway
 //        stream.rssi = kalmanFilter.filter(stream.rssi)
-
         val parameters = GatewayParameters(
             kalmanFilter.A,
             kalmanFilter.B,
             kalmanFilter.C,
             kalmanFilter.cov,
-            kalmanFilter.x
+            kalmanFilter.x,
+            stream.rssi
         )
-
         streamMemory.gatewayHistories[stream.sourceId] = parameters
 
-        if (stream.rssi > streamMemory.rssi) {
-            streamMemory.rssi = stream.rssi
-            streamMemory.gatewayId = stream.sourceId
-            streamMemory.calibratedRssi1m = stream.calibratedRssi1m
-        }
+        // Find the closest reading among those who has detected lastly and assigns it as source
+        val minimumReading = streamMemory.gatewayHistories.maxByOrNull { it.value.rssi }
+        streamMemory.rssi = minimumReading!!.value.rssi
+        streamMemory.gatewayId = minimumReading.key
+        streamMemory.calibratedRssi1m = stream.calibratedRssi1m
 
         val gateway = gatewayRepository.findByUniqueId(streamMemory.gatewayId) ?: return
         val webSocketMessage = StreamSocket(
