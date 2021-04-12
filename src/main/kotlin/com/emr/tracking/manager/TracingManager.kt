@@ -3,11 +3,11 @@ package com.emr.tracking.manager
 import com.emr.tracking.configuration.AppProperties
 import com.emr.tracking.configuration.WebSocketConfiguration
 import com.emr.tracking.model.*
-import com.emr.tracking.repository.BeaconRepository
-import com.emr.tracking.repository.GatewayRepository
-import com.emr.tracking.repository.StreamRepository
+import com.emr.tracking.repository.*
 import com.emr.tracking.utils.KalmanFilter
+import com.emr.tracking.websocket.TrackingSocket
 import org.springframework.stereotype.Component
+import java.util.*
 
 @Component
 class TracingManager(
@@ -15,12 +15,17 @@ class TracingManager(
     private val streamRepository: StreamRepository,
     private val beaconRepository: BeaconRepository,
     private val gatewayRepository: GatewayRepository,
-    private val webSocketConfiguration: WebSocketConfiguration,
+    private val mongoPatientBeaconRegistry: MongoPatientBeaconRegistry,
+    private val mongoPatientRepository: MongoPatientRepository,
+    private val trackingSocket: TrackingSocket,
 ) {
-    fun processBeaconStream(stream: KontaktTelemetryResponse) {
+    fun processBeaconStream(stream: TelemetryResponse) {
         if (!beaconRepository.isBeaconPresent(stream.trackingId)) {
             return
         }
+
+        val patientBeaconRegistry = mongoPatientBeaconRegistry.findAll().find { it.active && it.beaconId == stream.trackingId }
+            ?: return
 
         val streamMemory = streamRepository.findById(stream)
 
@@ -31,8 +36,8 @@ class TracingManager(
 
         // Discards all nodes that are not closed to the last seen position
         val lastGatewayId = streamMemory.gatewayId
-        val redisGateway = gatewayRepository.findByUniqueId(lastGatewayId) ?: return
-        val nearGateways = redisGateway.siblings
+        val rethinkGateway = gatewayRepository.findByMac(lastGatewayId) ?: return
+        val nearGateways = rethinkGateway.siblings
         if (!nearGateways.contains(stream.sourceId))
             return
 
@@ -63,7 +68,7 @@ class TracingManager(
         }
 
         // Recalculates and updates history of record from specific gateway
-//        stream.rssi = kalmanFilter.filter(stream.rssi)
+        stream.rssi = kalmanFilter.filter(stream.rssi)
         val parameters = GatewayParameters(
             kalmanFilter.A,
             kalmanFilter.B,
@@ -80,21 +85,21 @@ class TracingManager(
         streamMemory.gatewayId = minimumReading.key
         streamMemory.calibratedRssi1m = stream.calibratedRssi1m
 
-        val gateway = gatewayRepository.findByUniqueId(streamMemory.gatewayId) ?: return
+        val gateway = gatewayRepository.findByMac(streamMemory.gatewayId) ?: return
+        val patient = mongoPatientRepository.findById(patientBeaconRegistry.patientId).get()
+
         val webSocketMessage = StreamSocket(
             streamMemory.trackingId,
             streamMemory.rssi,
             streamMemory.calibratedRssi1m,
             StreamSocketGateway(
                 gateway.uniqueId,
-                gateway.position.first,
-                gateway.position.second,
-                gateway.floor
-            )
+                listOf(gateway.position.first, gateway.position.second, gateway.floor.toDouble())
+            ),
+            patient
         )
 
-        webSocketConfiguration
-            .tracingHandler()
+        trackingSocket
             .broadcastTracking(webSocketMessage)
 
         streamRepository.update(streamMemory)

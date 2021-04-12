@@ -18,4 +18,8 @@ To create the RethinkDB instance, use the following command:
 It automatically opens the following ports: 32770, 32769, 32768. The port `32770` is used for GUI management. The port
 `32769` is used by the tracking application to connect with the server.
 
+In order to create mongodb instance, the next command line is helpful
+
+`docker run -it -d --name mongodb -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=root --restart=always mongo`
+
 

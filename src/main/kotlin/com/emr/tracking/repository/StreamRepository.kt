@@ -2,7 +2,7 @@ package com.emr.tracking.repository
 
 import com.emr.tracking.configuration.AppProperties
 import com.emr.tracking.manager.RethinkManager
-import com.emr.tracking.model.KontaktTelemetryResponse
+import com.emr.tracking.model.TelemetryResponse
 import com.emr.tracking.model.StreamReading
 import com.google.gson.Gson
 import com.rethinkdb.RethinkDB.r
@@ -19,7 +19,35 @@ class StreamRepository(
         private val table = "streamreading"
     }
 
-    fun findById(stream: KontaktTelemetryResponse): StreamReading {
+    fun getAll(): List<StreamReading> {
+        val connection = rethinkManager.createConnection()
+
+        r.db(appProperties.rethinkDatabase).table(table).sync().run<Any>(connection)
+
+        val listIterator = r.db(appProperties.rethinkDatabase).table(table)
+            .getAll()
+            .run<Cursor<HashMap<Any, Any>>>(connection).toList()
+
+        return listIterator.map {
+            Gson().fromJson(JSONObject(it).toJSONString(), StreamReading::class.java)
+        }
+    }
+
+    fun findByBeaconMac(mac: String): StreamReading? {
+        val connection = rethinkManager.createConnection()
+
+        r.db(appProperties.rethinkDatabase).table(table).sync().run<Any>(connection)
+
+        val listIterator = r.db(appProperties.rethinkDatabase).table(table)
+            .getAll(mac).optArg("index", "trackingId")
+            .run<Cursor<HashMap<Any, Any>>>(connection).toList()
+
+        val firstIncidence = listIterator.firstOrNull() ?: return null
+
+        return Gson().fromJson(JSONObject(firstIncidence).toJSONString(), StreamReading::class.java)
+    }
+
+    fun findById(stream: TelemetryResponse): StreamReading {
         val connection = rethinkManager.createConnection()
 
         r.db(appProperties.rethinkDatabase).table(table).sync().run<Any>(connection)

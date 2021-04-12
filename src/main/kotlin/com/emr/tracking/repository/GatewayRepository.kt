@@ -5,7 +5,6 @@ import com.emr.tracking.manager.RethinkManager
 import com.emr.tracking.manager.RethinkManager.Companion.r
 import com.emr.tracking.model.Gateway
 import com.google.gson.Gson
-import com.rethinkdb.gen.ast.Json
 import com.rethinkdb.net.Cursor
 import org.json.simple.JSONObject
 import org.springframework.stereotype.Component
@@ -38,6 +37,18 @@ class GatewayRepository(
         val connection = rethinkManager.createConnection()
         val listIterator = r.db(appProperties.rethinkDatabase).table(table)
             .getAll(uniqueId).optArg("index", "uniqueId")
+            .run<Cursor<HashMap<Any, Any>>>(connection).toList()
+        connection.close()
+
+        val element = listIterator.firstOrNull() ?: return null
+        val json = JSONObject(element).toString()
+        return Gson().fromJson(json, Gateway::class.java)
+    }
+
+    fun findByMac(mac: String): Gateway? {
+        val connection = rethinkManager.createConnection()
+        val listIterator = r.db(appProperties.rethinkDatabase).table(table)
+            .getAll(mac).optArg("index", "mac")
             .run<Cursor<HashMap<Any, Any>>>(connection).toList()
         connection.close()
 

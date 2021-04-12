@@ -2,11 +2,9 @@ package com.emr.tracking.schedule
 
 import com.emr.tracking.configuration.AppProperties
 import com.emr.tracking.manager.TracingManager
-import com.emr.tracking.model.KontaktTelemetryResponse
+import com.emr.tracking.model.TelemetryResponse
 import com.google.gson.Gson
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import com.google.gson.reflect.TypeToken
 import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.regions.Region
@@ -22,20 +20,13 @@ import software.amazon.kinesis.lifecycle.events.*
 import software.amazon.kinesis.processor.ShardRecordProcessor
 import software.amazon.kinesis.processor.ShardRecordProcessorFactory
 import software.amazon.kinesis.retrieval.polling.PollingConfig
-import java.lang.Exception
 import java.nio.charset.StandardCharsets
 import java.util.*
-import java.util.concurrent.ExecutionException
-import org.apache.commons.lang3.RandomUtils
-import software.amazon.awssdk.core.SdkBytes
-import org.apache.commons.lang3.RandomStringUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
-import software.amazon.awssdk.services.kinesis.model.PutRecordRequest
 import software.amazon.kinesis.common.InitialPositionInStream
 import software.amazon.kinesis.common.InitialPositionInStreamExtended
-import kotlin.math.log
 
 @Component
 class KinesisTrackingScheduler(
@@ -122,9 +113,12 @@ class KinesisManager(
                 logger.info("Processing ${processRecordsInput.records().size}")
                 processRecordsInput.records()?.forEach {
                     val originalData = StandardCharsets.UTF_8.decode(it.data())
-                    val response = Gson().fromJson(originalData.toString(), KontaktTelemetryResponse::class.java)
-                    logger.info("Processing response: $originalData, with object: $response")
-                    tracingManager.processBeaconStream(response)
+                    val itemType = object : TypeToken<List<TelemetryResponse>>() {}.type
+                    val responses = Gson().fromJson<List<TelemetryResponse>>(originalData.toString(), itemType)
+                    logger.info("Processing response: $originalData, with object: $responses")
+                    responses.forEach { response ->
+                        tracingManager.processBeaconStream(response)
+                    }
                 }
                 processRecordsInput.checkpointer().checkpoint()
             } catch (e: Throwable) {

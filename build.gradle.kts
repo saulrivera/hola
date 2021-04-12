@@ -33,6 +33,7 @@ dependencies {
 	implementation("com.rethinkdb:rethinkdb-driver:2.3.3")
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
 	implementation("software.amazon.kinesis:amazon-kinesis-client:2.3.4")
+	implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 }
 
 tasks.withType<KotlinCompile> {

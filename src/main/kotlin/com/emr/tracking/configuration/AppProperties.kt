@@ -8,9 +8,6 @@ class AppProperties {
     @Value("\${application.name}")
     lateinit var applicationName: String
 
-    @Value("\${kontakt.io.apiKey}")
-    lateinit var kontaktApiKey: String
-
     @Value("\${app.tracing.frequency}")
     lateinit var appTracingFrequency: String
 
