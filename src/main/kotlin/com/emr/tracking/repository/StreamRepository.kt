@@ -16,21 +16,7 @@ class StreamRepository(
     private val rethinkManager: RethinkManager
 ) {
     companion object {
-        private val table = "streamreading"
-    }
-
-    fun getAll(): List<StreamReading> {
-        val connection = rethinkManager.createConnection()
-
-        r.db(appProperties.rethinkDatabase).table(table).sync().run<Any>(connection)
-
-        val listIterator = r.db(appProperties.rethinkDatabase).table(table)
-            .getAll()
-            .run<Cursor<HashMap<Any, Any>>>(connection).toList()
-
-        return listIterator.map {
-            Gson().fromJson(JSONObject(it).toJSONString(), StreamReading::class.java)
-        }
+        private const val table = "streamreading"
     }
 
     fun findByBeaconMac(mac: String): StreamReading? {

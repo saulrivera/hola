@@ -1,5 +1,6 @@
 package com.emr.tracking.websocket
 
+import com.emr.tracking.model.PatientBeaconRegistry
 import com.emr.tracking.model.StreamReading
 import com.emr.tracking.model.StreamSocket
 import com.emr.tracking.model.StreamSocketGateway
@@ -83,20 +84,25 @@ class TrackingSocket(
         broadcast(message)
     }
 
-    fun emitBeaconDetachment(streamSocket: StreamReading) {
+    fun emitBeaconDetachment(streamSocket: StreamSocket) {
         val message = Message("detach", Gson().toJson(streamSocket))
+        broadcast(message)
+    }
+
+    fun emitBeaconUpdate(streamSocket: StreamSocket) {
+        val message = Message("update", Gson().toJson(streamSocket))
         broadcast(message)
     }
 
     fun activeBeaconsStreams(): List<StreamSocket> {
         val records = mongoPatientBeaconRegistry.findAll().filter { it.active }
 
-        return records.map {
-            val streamMemory = streamRepository.findByBeaconMac(it.beaconId)!!
+        return records.mapNotNull(fun(it: PatientBeaconRegistry): StreamSocket? {
+            val streamMemory = streamRepository.findByBeaconMac(it.beaconId) ?: return null
             val patient = mongoPatientRepository.findById(it.patientId).get()
-            val gateway = gatewayRepository.findByMac(streamMemory.gatewayId)!!
+            val gateway = gatewayRepository.findByMac(streamMemory.gatewayId) ?: return null
 
-            StreamSocket(
+            return StreamSocket(
                 streamMemory.trackingId,
                 streamMemory.rssi,
                 streamMemory.calibratedRssi1m,
@@ -106,6 +112,6 @@ class TrackingSocket(
                 ),
                 patient
             )
-        }
+        })
     }
 }

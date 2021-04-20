@@ -1,13 +1,11 @@
 package com.emr.tracking.manager
 
 import com.emr.tracking.configuration.AppProperties
-import com.emr.tracking.configuration.WebSocketConfiguration
 import com.emr.tracking.model.*
 import com.emr.tracking.repository.*
 import com.emr.tracking.utils.KalmanFilter
-import com.emr.tracking.websocket.TrackingSocket
 import org.springframework.stereotype.Component
-import java.util.*
+import kotlin.math.abs
 
 @Component
 class TracingManager(
@@ -17,9 +15,9 @@ class TracingManager(
     private val gatewayRepository: GatewayRepository,
     private val mongoPatientBeaconRegistry: MongoPatientBeaconRegistry,
     private val mongoPatientRepository: MongoPatientRepository,
-    private val trackingSocket: TrackingSocket,
+    private val streamManager: StreamManager,
 ) {
-    fun processBeaconStream(stream: TelemetryResponse) {
+    @Synchronized fun processBeaconStream(stream: TelemetryResponse) {
         if (!beaconRepository.isBeaconPresent(stream.trackingId)) {
             return
         }
@@ -28,11 +26,6 @@ class TracingManager(
             ?: return
 
         val streamMemory = streamRepository.findById(stream)
-
-        // Updates reading if comes from the same source
-        if (stream.sourceId == streamMemory.gatewayId) {
-            streamMemory.rssi = stream.rssi
-        }
 
         // Discards all nodes that are not closed to the last seen position
         val lastGatewayId = streamMemory.gatewayId
@@ -68,39 +61,50 @@ class TracingManager(
         }
 
         // Recalculates and updates history of record from specific gateway
-        stream.rssi = kalmanFilter.filter(stream.rssi)
+        val clearedRssi = kalmanFilter.filter(stream.rssi)
+
+        if (abs(clearedRssi - streamMemory.rssi) < abs(streamMemory.rssi * appProperties.appTracingThresholdBeaconChange.toFloat())) {
+            return
+        }
+
+        streamMemory.rssi = clearedRssi
+
         val parameters = GatewayParameters(
             kalmanFilter.A,
             kalmanFilter.B,
             kalmanFilter.C,
             kalmanFilter.cov,
             kalmanFilter.x,
-            stream.rssi
+            streamMemory.rssi
         )
         streamMemory.gatewayHistories[stream.sourceId] = parameters
 
         // Find the closest reading among those who has detected lastly and assigns it as source
         val minimumReading = streamMemory.gatewayHistories.maxByOrNull { it.value.rssi }
+
+        val needsBroadcastResult = minimumReading?.key ?: "" != streamMemory.gatewayId
+
         streamMemory.rssi = minimumReading!!.value.rssi
         streamMemory.gatewayId = minimumReading.key
         streamMemory.calibratedRssi1m = stream.calibratedRssi1m
 
-        val gateway = gatewayRepository.findByMac(streamMemory.gatewayId) ?: return
-        val patient = mongoPatientRepository.findById(patientBeaconRegistry.patientId).get()
+        if (needsBroadcastResult) {
+            val gateway = gatewayRepository.findByMac(streamMemory.gatewayId) ?: return
+            val patient = mongoPatientRepository.findById(patientBeaconRegistry.patientId).get()
 
-        val webSocketMessage = StreamSocket(
-            streamMemory.trackingId,
-            streamMemory.rssi,
-            streamMemory.calibratedRssi1m,
-            StreamSocketGateway(
-                gateway.uniqueId,
-                listOf(gateway.position.first, gateway.position.second, gateway.floor.toDouble())
-            ),
-            patient
-        )
+            val webSocketMessage = StreamSocket(
+                streamMemory.trackingId,
+                streamMemory.rssi,
+                streamMemory.calibratedRssi1m,
+                StreamSocketGateway(
+                    gateway.uniqueId,
+                    listOf(gateway.position.first, gateway.position.second, gateway.floor.toDouble())
+                ),
+                patient
+            )
 
-        trackingSocket
-            .broadcastTracking(webSocketMessage)
+            streamManager.add(webSocketMessage)
+        }
 
         streamRepository.update(streamMemory)
     }

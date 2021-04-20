@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import software.amazon.kinesis.common.InitialPositionInStream
 import software.amazon.kinesis.common.InitialPositionInStreamExtended
+import kotlin.collections.HashMap
 
 @Component
 class KinesisTrackingScheduler(
@@ -115,7 +116,6 @@ class KinesisManager(
                     val originalData = StandardCharsets.UTF_8.decode(it.data())
                     val itemType = object : TypeToken<List<TelemetryResponse>>() {}.type
                     val responses = Gson().fromJson<List<TelemetryResponse>>(originalData.toString(), itemType)
-                    logger.info("Processing response: $originalData, with object: $responses")
                     responses.forEach { response ->
                         tracingManager.processBeaconStream(response)
                     }

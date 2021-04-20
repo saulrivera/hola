@@ -20,6 +20,9 @@ class AppProperties {
     @Value("\${app.tracing.environmentFactor}")
     lateinit var appTracingEnvironmentFactor: String
 
+    @Value("\${app.tracing.thresholdBeaconChange}")
+    lateinit var appTracingThresholdBeaconChange: String
+
     @Value("\${aws.region}")
     lateinit var awsRegion: String
 

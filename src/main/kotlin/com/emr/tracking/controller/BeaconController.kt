@@ -1,16 +1,12 @@
 package com.emr.tracking.controller
 
-import com.emr.tracking.configuration.WebSocketConfiguration
-import com.emr.tracking.model.Beacon
-import com.emr.tracking.model.Patient
-import com.emr.tracking.model.PatientBeaconRegistry
+import com.emr.tracking.manager.StreamManager
+import com.emr.tracking.model.*
 import com.emr.tracking.repository.MongoBeaconRepository
 import com.emr.tracking.repository.MongoPatientBeaconRegistry
 import com.emr.tracking.repository.MongoPatientRepository
-import com.emr.tracking.repository.StreamRepository
 import com.emr.tracking.websocket.TrackingSocket
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.socket.config.annotation.DelegatingWebSocketConfiguration
 import java.time.LocalDateTime
 import java.util.*
 
@@ -20,8 +16,8 @@ class BeaconController(
     private val mongoPatientRepository: MongoPatientRepository,
     private val mongoBeaconRepository: MongoBeaconRepository,
     private val mongoPatientBeaconRegistry: MongoPatientBeaconRegistry,
-    private val streamRepository: StreamRepository,
-    private val trackingSocket: TrackingSocket
+    private val trackingSocket: TrackingSocket,
+    private val streamManager: StreamManager
 ) {
 
     @GetMapping("/available")
@@ -46,10 +42,21 @@ class BeaconController(
             ?: throw Error("Beacon not found")
         val patient = patientPromise.get()
 
+        val oldRegistry = mongoPatientBeaconRegistry.findAll().firstOrNull { it.active && it.patientId == patientId }
         val patientBeaconRegistry = PatientBeaconRegistry(UUID.randomUUID().toString(), patientId, beacon.mac, true, LocalDateTime.now(), LocalDateTime.now())
-        patient.trackingDeviceId = beacon.uniqueId
         mongoPatientBeaconRegistry.save(patientBeaconRegistry)
 
+        if (oldRegistry != null) {
+            oldRegistry.active = false
+            mongoPatientBeaconRegistry.save(oldRegistry)
+        }
+
+        val stream = streamManager.createStreamSocketFor(patient, patientBeaconRegistry)
+        if (stream != null) {
+            trackingSocket.emitBeaconUpdate(stream)
+        }
+
+        patient.trackingDeviceId = beacon.uniqueId
         return mongoPatientRepository.save(patient)
     }
 
@@ -62,13 +69,16 @@ class BeaconController(
         val patient = patientPromise.get()
 
         val patientBeaconRegistry = mongoPatientBeaconRegistry.findAll().first { it.active && it.patientId == patientId }
+
+        val streamSocket = streamManager.createStreamSocketForPatient(patient)
+        if (streamSocket != null) {
+            trackingSocket.emitBeaconDetachment(streamSocket)
+        }
+
         patientBeaconRegistry.active = false
         patientBeaconRegistry.updatedAt = LocalDateTime.now()
 
         mongoPatientBeaconRegistry.save(patientBeaconRegistry)
-
-        val stream = streamRepository.findByBeaconMac(patientBeaconRegistry.beaconId)!!
-        trackingSocket.emitBeaconDetachment(stream)
 
         patient.trackingDeviceId = ""
         return mongoPatientRepository.save(patient)

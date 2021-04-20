@@ -13,7 +13,7 @@ password _s3cre3t_, but also can be changed in the code line above.
 
 To create the RethinkDB instance, use the following command:
 
-`docker run -d -P --name rethink rethinkdb` 
+`docker run -d -p 5000:8080 -p 28015:28015 -p 29015:29015 --name rethink rethinkdb` 
 
 It automatically opens the following ports: 32770, 32769, 32768. The port `32770` is used for GUI management. The port
 `32769` is used by the tracking application to connect with the server.

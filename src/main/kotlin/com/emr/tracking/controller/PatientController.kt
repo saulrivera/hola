@@ -1,9 +1,9 @@
 package com.emr.tracking.controller
 
+import com.emr.tracking.manager.StreamManager
 import com.emr.tracking.model.Patient
 import com.emr.tracking.repository.MongoPatientRepository
-import com.fasterxml.jackson.databind.type.MapType
-import org.springframework.http.MediaType
+import com.emr.tracking.websocket.TrackingSocket
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -11,7 +11,9 @@ import java.util.*
 @RestController
 @RequestMapping("/patient")
 class PatientController(
-    private val mongoPatientRepository: MongoPatientRepository
+    private val mongoPatientRepository: MongoPatientRepository,
+    private val streamManager: StreamManager,
+    private val trackingSocket: TrackingSocket
 ) {
 
     @GetMapping
@@ -39,9 +41,14 @@ class PatientController(
         oldPatient.firstname = patient.firstname
         oldPatient.middlename = patient.middlename
         oldPatient.lastname = patient.lastname
-        oldPatient.room = patient.room
         oldPatient.contactInfo.phone = patient.contactInfo.phone
         oldPatient.contactInfo.email = patient.contactInfo.email
+        oldPatient.room = patient.room
+
+        val streamSocket = streamManager.createStreamSocketForPatient(oldPatient)
+        if (streamSocket != null) {
+            trackingSocket.emitBeaconUpdate(streamSocket)
+        }
 
         return mongoPatientRepository.save(oldPatient)
     }

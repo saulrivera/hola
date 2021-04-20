@@ -1,9 +1,9 @@
 package com.emr.tracking.utils
 
 class KalmanFilter {
-    var A = 1.0
-    var B = 0.0
-    var C = 1.0
+    var A = 0.42093
+    var B = 0.9476
+    var C = 0.54992
     private var R: Double
     private var Q: Double
     var cov = Double.NaN
