@@ -14,18 +14,20 @@ public class PatientBeacon {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public PatientBeacon(String patientId, String beaconId, boolean active) {
+    public PatientBeacon(String patientId, String beaconId, boolean active, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = UUID.randomUUID().toString();
         this.patientId = patientId;
         this.beaconId = beaconId;
         this.active = active;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public String getId() {
         return id;
     }
+
+    public void setId(String id) { this.id = id; }
 
     public String getPatientId() {
         return patientId;

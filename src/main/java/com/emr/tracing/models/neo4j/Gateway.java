@@ -5,7 +5,9 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Node(primaryLabel = "Gateway")
 public class Gateway {
@@ -18,14 +20,20 @@ public class Gateway {
     private double coordinateX;
     private double coordinateY;
     @Relationship(type = "siblings")
-    private List<Gateway> siblings;
+    private Set<Gateway> siblings = new HashSet<>();
 
-    public Gateway(String uniqueId, String mac, int floor, double coordinateX, double coordinateY, List<Gateway> siblings) {
+    public Gateway() {}
+
+    public Gateway(String uniqueId, String mac, int floor, double coordinateX, double coordinateY) {
         this.uniqueId = uniqueId;
         this.mac = mac;
         this.floor = floor;
         this.coordinateX = coordinateX;
         this.coordinateY = coordinateY;
+    }
+
+    public Gateway(String uniqueId, String mac, int floor, double coordinateX, double coordinateY, Set<Gateway> siblings) {
+        this(uniqueId, mac, floor, coordinateX, coordinateY);
         this.siblings = siblings;
     }
 
@@ -73,11 +81,11 @@ public class Gateway {
         this.coordinateY = coordinateY;
     }
 
-    public List<Gateway> getSiblings() {
+    public Set<Gateway> getSiblings() {
         return siblings;
     }
 
-    public void setSiblings(List<Gateway> siblings) {
+    public void setSiblings(Set<Gateway> siblings) {
         this.siblings = siblings;
     }
 }

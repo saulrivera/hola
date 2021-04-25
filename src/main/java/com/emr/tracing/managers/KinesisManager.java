@@ -56,7 +56,7 @@ public class KinesisManager implements ShardRecordProcessor {
                         try {
                             tracingManager.processBeaconStream(response);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            logger.error(e.getMessage());
                         }
                     });
                 } catch (JsonProcessingException e) {

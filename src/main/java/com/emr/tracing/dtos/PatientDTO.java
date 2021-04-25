@@ -1,39 +1,22 @@
-package com.emr.tracing.models.mongo;
+package com.emr.tracing.dtos;
 
-import org.springframework.data.annotation.Id;
-
-import java.util.UUID;
-
-public class Patient {
-    @Id
+public class PatientDTO {
     private String id;
     private String firstName;
     private String middleName;
     private String lastName;
     private String room;
+    private String trackingDeviceId;
     private String contactPhone;
     private String contactEmail;
 
-    public Patient() {}
+    public String getId() {
+        return id;
+    }
 
-    public Patient(String id, String firstName, String middleName, String lastName, String room, String contactPhone, String contactEmail) {
-        this(firstName, middleName, lastName, room, contactPhone, contactEmail);
+    public void setId(String id) {
         this.id = id;
     }
-
-    public Patient(String firstName, String middleName, String lastName, String room, String contactPhone, String contactEmail) {
-        this.id = UUID.randomUUID().toString();
-        this.firstName = firstName;
-        this.middleName = middleName;
-        this.lastName = lastName;
-        this.room = room;
-        this.contactPhone = contactPhone;
-        this.contactEmail = contactEmail;
-    }
-
-    public String getId() { return id; }
-
-    public void setId(String id) { this.id = id; }
 
     public String getFirstName() {
         return firstName;
@@ -67,6 +50,14 @@ public class Patient {
         this.room = room;
     }
 
+    public String getTrackingDeviceId() {
+        return trackingDeviceId;
+    }
+
+    public void setTrackingDeviceId(String trackingDeviceId) {
+        this.trackingDeviceId = trackingDeviceId;
+    }
+
     public String getContactPhone() {
         return contactPhone;
     }
@@ -81,12 +72,5 @@ public class Patient {
 
     public void setContactEmail(String contactEmail) {
         this.contactEmail = contactEmail;
-    }
-
-    public String fullName() {
-        if (this.middleName != null && !this.middleName.isEmpty()) {
-            return this.firstName + " " + this.middleName + " " + this.lastName;
-        }
-        return this.firstName + " " + this.lastName;
     }
 }

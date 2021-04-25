@@ -1,10 +1,14 @@
 package com.emr.tracing.websockets;
 
+import com.emr.tracing.managers.StreamManager;
 import com.emr.tracing.models.Stream;
 import com.emr.tracing.models.socket.Message;
+import com.emr.tracing.models.socket.User;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -22,6 +26,12 @@ public class TracingSocket extends TextWebSocketHandler {
     private static final Logger logger = LoggerFactory.getLogger(TracingSocket.class);
     private static final Set<WebSocketSession> sessionList = Collections.synchronizedSet(new HashSet<>());
     private static final AtomicLong uuids = new AtomicLong(0);
+    @Autowired
+    private final StreamManager streamManager;
+
+    public TracingSocket(StreamManager streamManager) {
+        this.streamManager = streamManager;
+    }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
@@ -32,6 +42,23 @@ public class TracingSocket extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         super.handleTextMessage(session, message);
+
+        JsonNode json = new ObjectMapper().readTree(message.getPayload());
+
+        switch (json.get("type").asText()) {
+            case "join":
+                User user = new User(uuids.incrementAndGet(), json.get("data").asText());
+                sessionList.add(session);
+                broadcastToOthers(session, new Message("join", new ObjectMapper().writeValueAsString(user)));
+                Message activeBeaconMessage = new Message("activeBeacons", new ObjectMapper().writeValueAsString(streamManager.getActiveStreams()));
+                emit(session, activeBeaconMessage);
+                break;
+            case "say":
+                broadcast(new Message("say", json.get("data").asText()));
+                break;
+            default:
+                break;
+        }
 
     }
 

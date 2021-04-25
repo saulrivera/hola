@@ -6,13 +6,13 @@ import com.emr.tracing.models.Stream;
 import com.emr.tracing.models.redis.*;
 import com.emr.tracing.repositories.redis.*;
 import com.emr.tracing.utils.KalmanFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.text.Collator;
+import java.util.*;
 
 @Component
 public class TracingManager {
@@ -28,6 +28,10 @@ public class TracingManager {
     private final RedisGatewayRepository _redisGatewayRepository;
     @Autowired
     private final RedisPatientRepository _redisPatientRepository;
+    @Autowired
+    private final StreamManager _streamManager;
+
+    private static final Logger logger = LoggerFactory.getLogger(TracingManager.class);
 
     public TracingManager(
             TracingConfProperties tracingConfProperties,
@@ -35,7 +39,8 @@ public class TracingManager {
             RedisPatientBeaconRepository redisPatientBeaconRepository,
             RedisRecordStateRepository redisRecordStateRepository,
             RedisGatewayRepository redisGatewayRepository,
-            RedisPatientRepository redisPatientRepository
+            RedisPatientRepository redisPatientRepository,
+            StreamManager streamManager
     ) {
         _tracingConfigProperties = tracingConfProperties;
         _redisBeaconRepository = redisBeaconRepository;
@@ -43,9 +48,10 @@ public class TracingManager {
         _redisRecordStateRepository = redisRecordStateRepository;
         _redisGatewayRepository = redisGatewayRepository;
         _redisPatientRepository = redisPatientRepository;
+        _streamManager = streamManager;
     }
 
-    public void processBeaconStream(Reading reading) throws Exception {
+    public synchronized void processBeaconStream(Reading reading) throws Exception {
         if (!_redisBeaconRepository.isBeaconPresent(reading.getTrackingMac())) {
             throw new Exception("Beacon doesn't exist");
         }
@@ -62,7 +68,8 @@ public class TracingManager {
         if (lastGateway == null) {
             throw new Exception("Gateway from incoming reading is not found.");
         }
-        List<String> nearMacGateways = lastGateway.getSiblings();
+        Set<String> nearMacGateways = lastGateway.getSiblings();
+        nearMacGateways.add(reading.getGatewayMac());
 
         if (!nearMacGateways.contains(reading.getGatewayMac())) {
             throw new Exception("Gateways is far from last seen source.");
@@ -107,7 +114,7 @@ public class TracingManager {
                 kalmanFilter.getB(),
                 kalmanFilter.getC(),
                 kalmanFilter.getCov(),
-                kalmanFilter.getX()
+                clearedRssi
         );
         recordState.getGatewayParameters().put(reading.getGatewayMac(), updatedParameters);
 
@@ -121,13 +128,15 @@ public class TracingManager {
 
         Map.Entry<String, RecordStateGatewayParameters> minimumReading = minimumReadingOptional.get();
 
-        boolean needsBroadcast = !minimumReading.getKey().equals(recordState.getGatewayMac());
+        Collator collator = Collator.getInstance();
+        boolean needsBroadcast = !collator.equals(minimumReading.getKey(), recordState.getGatewayMac());
 
         recordState.setRssi(minimumReading.getValue().getX());
-        recordState.setGatewayMac(minimumReading.getKey());
         recordState.setCalibratedRssi1m(reading.getCalibratedRssi1m());
 
         if (needsBroadcast) {
+            recordState.setGatewayMac(minimumReading.getKey());
+
             Gateway gateway = _redisGatewayRepository.findByMac(recordState.getGatewayMac());
             Patient patient = _redisPatientRepository.findById(patientBeacon.getPatientId());
 
@@ -135,14 +144,14 @@ public class TracingManager {
                     recordState.getTrackingMac(),
                     recordState.getRssi(),
                     recordState.getCalibratedRssi1m(),
-                    recordState.getGatewayMac(),
+                    minimumReading.getKey(),
                     gateway.getFloor(),
                     gateway.getCoordinateX(),
                     gateway.getCoordinateY(),
                     patient
             );
 
-            //TODO: Create broker to send message
+            _streamManager.add(stream);
         }
 
         _redisRecordStateRepository.update(recordState);

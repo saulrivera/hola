@@ -1,17 +1,8 @@
-package com.emr.tracing.models.redis;
+package com.emr.tracing.dtos;
 
-import java.io.Serializable;
-
-public class Beacon implements Serializable {
+public class BeaconDTO {
     private String mac;
     private String uniqueId;
-
-    public Beacon() {}
-
-    public Beacon(String mac, String uniqueId) {
-        this.mac = mac;
-        this.uniqueId = uniqueId;
-    }
 
     public String getMac() {
         return mac;

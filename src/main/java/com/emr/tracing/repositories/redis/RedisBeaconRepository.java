@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class RedisBeaconRepository implements IRedisBeaconRepository {
+    private static final String table = "Beacon";
     private final RedisTemplate<String, Beacon> redisTemplate;
     private final HashOperations hashOperations;
 
@@ -17,7 +18,16 @@ public class RedisBeaconRepository implements IRedisBeaconRepository {
 
     @Override
     public boolean isBeaconPresent(String mac) {
-        var value = (Beacon)hashOperations.get("USER", mac);
+        var value = (Beacon)hashOperations.get(table, mac);
         return value != null;
+    }
+
+    @Override
+    public void add(Beacon beacon) {
+        hashOperations.put(table, beacon.getMac(), beacon);
+    }
+
+    public void delete(String mac) {
+        hashOperations.delete(table, mac);
     }
 }

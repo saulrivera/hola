@@ -4,4 +4,5 @@ import com.emr.tracing.models.mongo.Beacon;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface MongoBeaconRepository extends MongoRepository<Beacon, String> {
+    Beacon findByLabel(String label);
 }

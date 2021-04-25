@@ -21,4 +21,9 @@ public class RedisGatewayRepository implements IRedisGatewayRepository {
     public Gateway findByMac(String mac) {
         return (Gateway) hashOperations.get(table, mac);
     }
+
+    @Override
+    public void add(Gateway gateway) {
+        hashOperations.put(table, gateway.getMac(), gateway);
+    }
 }

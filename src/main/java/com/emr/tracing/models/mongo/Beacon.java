@@ -20,6 +20,8 @@ public class Beacon {
         return id;
     }
 
+    public void setId(String id) { this.id = id; }
+
     public String getMac() {
         return mac;
     }

@@ -8,15 +8,15 @@ public class Patient implements Serializable {
     private String middleName;
     private String lastName;
     private String room;
-    private String trackingDeviceId;
 
-    public Patient(String id, String firstName, String middleName, String lastName, String room, String trackingDeviceId) {
+    public Patient() {}
+
+    public Patient(String id, String firstName, String middleName, String lastName, String room) {
         this.id = id;
         this.firstName = firstName;
         this.middleName = middleName;
         this.lastName = lastName;
         this.room = room;
-        this.trackingDeviceId = trackingDeviceId;
     }
 
     public String getId() {
@@ -55,13 +55,5 @@ public class Patient implements Serializable {
 
     public void setRoom(String room) {
         this.room = room;
-    }
-
-    public String getTrackingDeviceId() {
-        return trackingDeviceId;
-    }
-
-    public void setTrackingDeviceId(String trackingDeviceId) {
-        this.trackingDeviceId = trackingDeviceId;
     }
 }

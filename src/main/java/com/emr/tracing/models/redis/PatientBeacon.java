@@ -4,12 +4,14 @@ import java.io.Serializable;
 
 public class PatientBeacon implements Serializable {
     private String patientId;
-    private String beaconId;
+    private String beaconMac;
     private boolean active;
 
-    public PatientBeacon(String patientId, String beaconId, boolean active) {
+    public PatientBeacon() {}
+
+    public PatientBeacon(String patientId, String beaconMac, boolean active) {
         this.patientId = patientId;
-        this.beaconId = beaconId;
+        this.beaconMac = beaconMac;
         this.active = active;
     }
 
@@ -21,12 +23,12 @@ public class PatientBeacon implements Serializable {
         this.patientId = patientId;
     }
 
-    public String getBeaconId() {
-        return beaconId;
+    public String getBeaconMac() {
+        return beaconMac;
     }
 
-    public void setBeaconId(String beaconId) {
-        this.beaconId = beaconId;
+    public void setBeaconMac(String beaconMac) {
+        this.beaconMac = beaconMac;
     }
 
     public boolean isActive() {

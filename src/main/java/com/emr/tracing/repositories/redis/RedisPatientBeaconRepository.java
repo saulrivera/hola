@@ -27,10 +27,21 @@ public class RedisPatientBeaconRepository implements IRedisPatientBeaconReposito
     }
 
     @Override
+    public void save(PatientBeacon patientBeacon) {
+        hashOperations.put(table, patientBeacon.getBeaconMac(), patientBeacon);
+    }
+
+    @Override
+    public void deleteByBeaconMac(String beaconMac) {
+        hashOperations.delete(table, beaconMac);
+    }
+
+    @Override
     public PatientBeacon findByActiveAndBeaconMac(String mac) {
-        var data = findAll().values()
+        var all = findAll();
+        var data = all.values()
                 .stream()
-                .filter(patientBeacon -> patientBeacon.isActive() && patientBeacon.getBeaconId().equals(mac))
+                .filter(patientBeacon -> patientBeacon.isActive() && patientBeacon.getBeaconMac().equals(mac))
                 .findFirst();
         if (data.isEmpty()) return null;
         return data.get();

@@ -21,4 +21,9 @@ public class RedisPatientRepository implements IRedisPatientRepository {
     public Patient findById(String id) {
         return (Patient) hashOperations.get(table, id);
     }
+
+    @Override
+    public void add(Patient patient) {
+        hashOperations.put(table, patient.getId(), patient);
+    }
 }

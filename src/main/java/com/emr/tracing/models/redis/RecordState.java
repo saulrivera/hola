@@ -11,6 +11,8 @@ public class RecordState implements Serializable {
     private double calibratedRssi1m;
     private Map<String, RecordStateGatewayParameters> gatewayParameters;
 
+    public RecordState() {}
+
     public RecordState(String trackingMac, String gatewayMac, double rssi, double calibratedRssi1m) {
         this.trackingMac = trackingMac;
         this.gatewayMac = gatewayMac;

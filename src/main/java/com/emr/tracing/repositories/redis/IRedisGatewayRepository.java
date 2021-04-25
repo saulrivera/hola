@@ -4,4 +4,5 @@ import com.emr.tracing.models.redis.Gateway;
 
 public interface IRedisGatewayRepository {
     Gateway findByMac(String mac);
+    void add(Gateway gateway);
 }

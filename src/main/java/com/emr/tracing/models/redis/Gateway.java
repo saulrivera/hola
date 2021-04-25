@@ -2,7 +2,9 @@ package com.emr.tracing.models.redis;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Gateway implements Serializable {
     private String mac;
@@ -10,7 +12,9 @@ public class Gateway implements Serializable {
     private int floor;
     private double coordinateX;
     private double coordinateY;
-    private List<String> siblings;
+    private Set<String> siblings;
+
+    public Gateway() {}
 
     public Gateway(String mac, String uniqueId, int floor, double coordinateX, double coordinateY) {
         this.mac = mac;
@@ -18,10 +22,10 @@ public class Gateway implements Serializable {
         this.floor = floor;
         this.coordinateX = coordinateX;
         this.coordinateY = coordinateY;
-        this.siblings = new ArrayList<>();
+        this.siblings = new HashSet<>();
     }
 
-    public Gateway(String mac, String uniqueId, int floor, double coordinateX, double coordinateY, List<String> siblings) {
+    public Gateway(String mac, String uniqueId, int floor, double coordinateX, double coordinateY, Set<String> siblings) {
         this(mac, uniqueId, floor, coordinateX, coordinateY);
         this.siblings = siblings;
     }
@@ -66,11 +70,11 @@ public class Gateway implements Serializable {
         this.coordinateY = coordinateY;
     }
 
-    public List<String> getSiblings() {
+    public Set<String> getSiblings() {
         return siblings;
     }
 
-    public void setSiblings(List<String> siblings) {
+    public void setSiblings(Set<String> siblings) {
         this.siblings = siblings;
     }
 }

@@ -10,18 +10,23 @@ import com.emr.tracing.repositories.redis.RedisPatientBeaconRepository;
 import com.emr.tracing.repositories.redis.RedisPatientRepository;
 import com.emr.tracing.repositories.redis.RedisRecordStateRepository;
 import com.emr.tracing.websockets.TracingSocket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Component
 public class StreamManager {
-    private volatile Map<String, Stream> streamQueue = new HashMap<>();
+    private final Map<String, Stream> streamQueue = new ConcurrentHashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(StreamManager.class);
 
     @Autowired
     private final RedisGatewayRepository redisGatewayRepository;
@@ -31,31 +36,28 @@ public class StreamManager {
     private final RedisPatientBeaconRepository redisPatientBeaconRepository;
     @Autowired
     private final RedisPatientRepository redisPatientRepository;
-    @Autowired
-    private final TracingSocket tracingSocket;
 
     public StreamManager(
             RedisGatewayRepository redisGatewayRepository,
             RedisRecordStateRepository redisRecordStateRepository,
             RedisPatientBeaconRepository redisPatientBeaconRepository,
-            RedisPatientRepository redisPatientRepository,
-            TracingSocket tracingSocket
+            RedisPatientRepository redisPatientRepository
             ) {
         this.redisGatewayRepository = redisGatewayRepository;
         this.redisRecordStateRepository = redisRecordStateRepository;
         this.redisPatientBeaconRepository = redisPatientBeaconRepository;
         this.redisPatientRepository = redisPatientRepository;
-        this.tracingSocket = tracingSocket;
     }
 
-    public Stream createStreamForPatient(Patient patient) {
-        PatientBeacon patientBeacon = redisPatientBeaconRepository.findByActiveAndPatientId(patient.getId());
+    public Stream createStreamForPatient(String patientId) {
+        PatientBeacon patientBeacon = redisPatientBeaconRepository.findByActiveAndPatientId(patientId);
         if (patientBeacon == null) return null;
-        return createStreamForPatient(patient, patientBeacon);
+        return createStreamForPatient(patientBeacon);
     }
 
-    public Stream createStreamForPatient(Patient patient, PatientBeacon patientBeacon) {
-        RecordState recordState = redisRecordStateRepository.findByBeaconMac(patientBeacon.getBeaconId());
+    public Stream createStreamForPatient(PatientBeacon patientBeacon) {
+        Patient patient = redisPatientRepository.findById(patientBeacon.getPatientId());
+        RecordState recordState = redisRecordStateRepository.findByBeaconMac(patientBeacon.getBeaconMac());
         if (recordState == null) return null;
         Gateway gateway = redisGatewayRepository.findByMac(recordState.getGatewayMac());
         if (gateway == null) return null;
@@ -76,7 +78,7 @@ public class StreamManager {
         List<PatientBeacon> patientBeacons = redisPatientBeaconRepository.findByActive();
         return patientBeacons.stream().map(patientBeacon -> {
             Patient patient = redisPatientRepository.findById(patientBeacon.getPatientId());
-            return createStreamForPatient(patient);
+            return createStreamForPatient(patient.getId());
         }).collect(Collectors.toList());
     }
 
@@ -84,14 +86,11 @@ public class StreamManager {
         streamQueue.put(stream.getMac(), stream);
     }
 
-    public void broadcastStreams() {
-        streamQueue.values().forEach(it -> {
-            try {
-                tracingSocket.broadcastTracking(it);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+    public List<Stream> getStreams() {
+        return new ArrayList<>(streamQueue.values());
+    }
+
+    public void clearStreamStack() {
         streamQueue.clear();
     }
 }

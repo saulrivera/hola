@@ -12,17 +12,11 @@ public class Record {
     private double rssi;
     private double calibratedRssi1m;
 
-    public Record(String trackingId, String gatewayId, double rssi, double calibratedRssi1m) {
-        this.id = UUID.randomUUID().toString();
-        this.trackingId = trackingId;
-        this.gatewayId = gatewayId;
-        this.rssi = rssi;
-        this.calibratedRssi1m = calibratedRssi1m;
-    }
-
     public String getId() {
         return id;
     }
+
+    public void setId(String id) { this.id = id; }
 
     public String getTrackingId() {
         return trackingId;

@@ -9,6 +9,7 @@ public class RecordStateGatewayParameters implements Serializable {
     private double cov;
     private double x;
 
+    public RecordStateGatewayParameters() {}
 
     public RecordStateGatewayParameters(double a, double b, double c, double cov, double x) {
         this.a = a;

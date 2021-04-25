@@ -6,4 +6,5 @@ import java.util.Map;
 
 public interface IRedisBeaconRepository {
     boolean isBeaconPresent(String mac);
+    void add(Beacon beacon);
 }

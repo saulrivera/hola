@@ -1,6 +1,5 @@
 package com.emr.tracing.repositories.redis;
 
-
 import com.emr.tracing.models.redis.PatientBeacon;
 
 import java.util.List;
@@ -11,4 +10,6 @@ public interface IRedisPatientBeaconRepository {
     PatientBeacon findByActiveAndPatientId(String patientID);
     List<PatientBeacon> findByActive();
     Map<String, PatientBeacon> findAll();
+    void save(PatientBeacon patientBeacon);
+    void deleteByBeaconMac(String beaconId);
 }
