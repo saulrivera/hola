@@ -1,14 +1,12 @@
 package com.emr.tracing.models.redis;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class Gateway implements Serializable {
     private String mac;
-    private String uniqueId;
+    private String label;
     private int floor;
     private double coordinateX;
     private double coordinateY;
@@ -16,17 +14,17 @@ public class Gateway implements Serializable {
 
     public Gateway() {}
 
-    public Gateway(String mac, String uniqueId, int floor, double coordinateX, double coordinateY) {
+    public Gateway(String mac, String label, int floor, double coordinateX, double coordinateY) {
         this.mac = mac;
-        this.uniqueId = uniqueId;
+        this.label = label;
         this.floor = floor;
         this.coordinateX = coordinateX;
         this.coordinateY = coordinateY;
         this.siblings = new HashSet<>();
     }
 
-    public Gateway(String mac, String uniqueId, int floor, double coordinateX, double coordinateY, Set<String> siblings) {
-        this(mac, uniqueId, floor, coordinateX, coordinateY);
+    public Gateway(String mac, String label, int floor, double coordinateX, double coordinateY, Set<String> siblings) {
+        this(mac, label, floor, coordinateX, coordinateY);
         this.siblings = siblings;
     }
 
@@ -38,12 +36,12 @@ public class Gateway implements Serializable {
         this.mac = mac;
     }
 
-    public String getUniqueId() {
-        return uniqueId;
+    public String getLabel() {
+        return label;
     }
 
-    public void setUniqueId(String uniqueId) {
-        this.uniqueId = uniqueId;
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public int getFloor() {

@@ -107,6 +107,7 @@ public class BeaconLogic {
             patientBeaconRepository.save(oldRegistry);
         }
 
+        assert redisPatientBeacon != null;
         return streamManager.createStreamForPatient(redisPatientBeacon);
     }
 
@@ -120,7 +121,12 @@ public class BeaconLogic {
         patientBeacon.setUpdatedAt(LocalDateTime.now());
         patientBeaconRepository.save(patientBeacon);
 
-        redisPatientBeaconRepository.deleteByBeaconMac(beacon.getMac());
+        var redisPatientBeacon = createPatientBeacon(patientBeacon);
+
+        assert redisPatientBeacon != null;
+        redisPatientBeacon.setActive(false);
+
+        redisPatientBeaconRepository.save(redisPatientBeacon);
 
         return stream;
     }
@@ -144,7 +150,9 @@ public class BeaconLogic {
     }
 
     private com.emr.tracing.models.redis.PatientBeacon createPatientBeacon(PatientBeacon patientBeacon) {
-        String beaconMac = beaconRepository.findById(patientBeacon.getBeaconId()).get().getMac();
+        Optional<Beacon> beacon = beaconRepository.findById(patientBeacon.getBeaconId());
+        if (beacon.isEmpty()) return null;
+        String beaconMac = beacon.get().getMac();
         return new com.emr.tracing.models.redis.PatientBeacon(
                 patientBeacon.getPatientId(),
                 beaconMac,

@@ -6,7 +6,6 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Node(primaryLabel = "Gateway")
@@ -14,7 +13,7 @@ public class Gateway {
     @Id
     @GeneratedValue
     private long id;
-    private String uniqueId;
+    private String label;
     private String mac;
     private int floor;
     private double coordinateX;
@@ -24,16 +23,16 @@ public class Gateway {
 
     public Gateway() {}
 
-    public Gateway(String uniqueId, String mac, int floor, double coordinateX, double coordinateY) {
-        this.uniqueId = uniqueId;
+    public Gateway(String label, String mac, int floor, double coordinateX, double coordinateY) {
+        this.label = label;
         this.mac = mac;
         this.floor = floor;
         this.coordinateX = coordinateX;
         this.coordinateY = coordinateY;
     }
 
-    public Gateway(String uniqueId, String mac, int floor, double coordinateX, double coordinateY, Set<Gateway> siblings) {
-        this(uniqueId, mac, floor, coordinateX, coordinateY);
+    public Gateway(String label, String mac, int floor, double coordinateX, double coordinateY, Set<Gateway> siblings) {
+        this(label, mac, floor, coordinateX, coordinateY);
         this.siblings = siblings;
     }
 
@@ -41,12 +40,12 @@ public class Gateway {
         return id;
     }
 
-    public String getUniqueId() {
-        return uniqueId;
+    public String getLabel() {
+        return label;
     }
 
-    public void setUniqueId(String uniqueId) {
-        this.uniqueId = uniqueId;
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public String getMac() {

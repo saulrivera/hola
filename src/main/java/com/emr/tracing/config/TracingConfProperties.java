@@ -11,6 +11,7 @@ public class TracingConfProperties {
     private double qKalmanFilter;
     private double environmentFactor;
     private double thresholdSignal;
+    private String beaconAlertId;
 
     public int getFrequency() {
         return frequency;
@@ -47,4 +48,12 @@ public class TracingConfProperties {
     public double getThresholdSignal() { return thresholdSignal; }
 
     public void setThresholdSignal(double thresholdSignal) { this.thresholdSignal = thresholdSignal; }
+
+    public String getBeaconAlertId() {
+        return beaconAlertId;
+    }
+
+    public void setBeaconAlertId(String beaconAlertId) {
+        this.beaconAlertId = beaconAlertId;
+    }
 }

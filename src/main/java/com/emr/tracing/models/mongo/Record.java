@@ -2,8 +2,6 @@ package com.emr.tracing.models.mongo;
 
 import org.springframework.data.annotation.Id;
 
-import java.util.UUID;
-
 public class Record {
     @Id
     private String id;

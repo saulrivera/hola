@@ -2,9 +2,9 @@ package com.emr.tracing.models.socket;
 
 public class Message {
     private String type;
-    private String data;
+    private Object data;
 
-    public Message(String type, String data) {
+    public Message(String type, Object data) {
         this.type = type;
         this.data = data;
     }
@@ -17,7 +17,7 @@ public class Message {
         this.type = type;
     }
 
-    public String getData() {
+    public Object getData() {
         return data;
     }
 

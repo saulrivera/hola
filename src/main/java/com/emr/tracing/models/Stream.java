@@ -7,12 +7,23 @@ public class Stream {
     private double rssi;
     private double calibratedRssi1m;
     private String gatewayMac;
+    private String gatewayLabel;
     private int gatewayFloor;
     private double gatewayCoordinateX;
     private double gatewayCoordinateY;
     private Patient patient;
 
-    public Stream(String mac, double rssi, double calibratedRssi1m, String gatewayMac, int gatewayFloor, double gatewayCoordinateX, double gatewayCoordinateY, Patient patient) {
+    public Stream(
+            String mac,
+            double rssi,
+            double calibratedRssi1m,
+            String gatewayMac,
+            String gatewayLabel,
+            int gatewayFloor,
+            double gatewayCoordinateX,
+            double gatewayCoordinateY,
+            Patient patient
+    ) {
         this.mac = mac;
         this.rssi = rssi;
         this.calibratedRssi1m = calibratedRssi1m;
@@ -21,6 +32,7 @@ public class Stream {
         this.gatewayCoordinateX = gatewayCoordinateX;
         this.gatewayCoordinateY = gatewayCoordinateY;
         this.patient = patient;
+        this.gatewayLabel = gatewayLabel;
     }
 
     public String getMac() {
@@ -29,6 +41,14 @@ public class Stream {
 
     public void setMac(String mac) {
         this.mac = mac;
+    }
+
+    public String getGatewayLabel() {
+        return gatewayLabel;
+    }
+
+    public void setGatewayLabel(String gatewayLabel) {
+        this.gatewayLabel = gatewayLabel;
     }
 
     public double getRssi() {

@@ -51,7 +51,7 @@ public class TracingManager {
         _streamManager = streamManager;
     }
 
-    public synchronized void processBeaconStream(Reading reading) throws Exception {
+    public void processBeaconStream(Reading reading) throws Exception {
         if (!_redisBeaconRepository.isBeaconPresent(reading.getTrackingMac())) {
             throw new Exception("Beacon doesn't exist");
         }
@@ -145,6 +145,7 @@ public class TracingManager {
                     recordState.getRssi(),
                     recordState.getCalibratedRssi1m(),
                     minimumReading.getKey(),
+                    gateway.getLabel(),
                     gateway.getFloor(),
                     gateway.getCoordinateX(),
                     gateway.getCoordinateY(),
@@ -155,5 +156,40 @@ public class TracingManager {
         }
 
         _redisRecordStateRepository.update(recordState);
+    }
+
+    public void alertEmittedBy(Reading reading) throws Exception {
+        var patientBeacon = _redisPatientBeaconRepository.findByActiveAndBeaconMac(reading.getTrackingMac());
+        if (patientBeacon == null) {
+            throw new Exception("Patient not related to this beacon");
+        }
+
+        RecordState recordState = _redisRecordStateRepository.findOrCreate(reading);
+        if (recordState == null) {
+            throw new Exception("Not record found, so patient cannot be localized");
+        }
+
+        var patient = _redisPatientRepository.findById(patientBeacon.getPatientId());
+        if (patient == null) {
+            throw new Exception("Patient not related to this beacon found");
+        }
+        Gateway gateway = _redisGatewayRepository.findByMac(reading.getGatewayMac());
+        if (gateway == null) {
+            throw new Exception("Gateway not found");
+        }
+
+        Stream stream = new Stream(
+                recordState.getTrackingMac(),
+                recordState.getRssi(),
+                recordState.getCalibratedRssi1m(),
+                recordState.getGatewayMac(),
+                gateway.getLabel(),
+                gateway.getFloor(),
+                gateway.getCoordinateX(),
+                gateway.getCoordinateY(),
+                patient
+        );
+
+        _streamManager.sendPatientAlert(stream);
     }
 }

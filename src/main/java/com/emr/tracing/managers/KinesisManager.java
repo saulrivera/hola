@@ -1,5 +1,6 @@
 package com.emr.tracing.managers;
 
+import com.emr.tracing.config.TracingConfProperties;
 import com.emr.tracing.models.Reading;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,9 +26,12 @@ public class KinesisManager implements ShardRecordProcessor {
 
     @Autowired
     private final TracingManager tracingManager;
+    @Autowired
+    private final TracingConfProperties tracingConfProperties;
 
-    public KinesisManager(TracingManager tracingManager) {
+    public KinesisManager(TracingManager tracingManager, TracingConfProperties tracingConfProperties) {
         this.tracingManager = tracingManager;
+        this.tracingConfProperties = tracingConfProperties;
     }
 
     @Override
@@ -54,12 +58,17 @@ public class KinesisManager implements ShardRecordProcessor {
                     Reading[] responses = new ObjectMapper().readValue(originalData.toString(), Reading[].class);
                     Arrays.stream(responses).forEach(response -> {
                         try {
-                            tracingManager.processBeaconStream(response);
+                            if (response.getUuid().equals(tracingConfProperties.getBeaconAlertId())) {
+                                tracingManager.alertEmittedBy(response);
+                            } else {
+                                tracingManager.processBeaconStream(response);
+                            }
                         } catch (Exception e) {
                             logger.error(e.getMessage());
                         }
                     });
-                } catch (JsonProcessingException e) {
+                    processRecordsInput.checkpointer().checkpoint();
+                } catch (JsonProcessingException | ShutdownException | InvalidStateException e) {
                     e.printStackTrace();
                 }
             });

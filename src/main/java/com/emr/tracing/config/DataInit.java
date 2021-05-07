@@ -11,8 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.stream.Collectors;
 
 @Configuration
 public class DataInit {
@@ -48,18 +46,10 @@ public class DataInit {
         }
 
         if (gatewayLogic.isTableEmpty()) {
-            var gateways = Arrays.stream(new Gateway[] {
-                    new Gateway("EMRG1", "68B9D3D1928C", 0, 10.0, 7.0),
-                    new Gateway("EMRG2", "68B9D3D196F0", 0, -10.0, 7.0)
-            }).collect(Collectors.toList());
+            var gateway = new Gateway("EMRG1", "68B9D3D1928C", 0, 10.0, 7.0);
+            gateway.getSiblings().add(new Gateway("EMRG2", "68B9D3D196F0", 0, -10.0, 7.0));
 
-            gateways.forEach(gatewayLogic::add);
-
-            var siblings1 = new HashSet<Gateway>();
-            siblings1.add(gateways.get(1));
-            gateways.get(0).setSiblings(siblings1);
-
-            gateways.forEach(gatewayLogic::add);
+            gatewayLogic.add(gateway);
         }
 
         beaconLogic.syncWithRedis();

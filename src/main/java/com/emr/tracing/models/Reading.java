@@ -21,6 +21,8 @@ public class Reading {
     private double rssi;
     @JsonProperty("RSSI@1m(dBm)")
     private double calibratedRssi1m;
+    @JsonProperty("iBeaconUUID(hex)")
+    private String uuid;
 
     public String getId() { return id; }
 
@@ -65,5 +67,13 @@ public class Reading {
 
     public void setCalibratedRssi1m(double calibratedRssi1m) {
         this.calibratedRssi1m = calibratedRssi1m;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 }

@@ -45,7 +45,7 @@ public class GatewayLogic {
                 .collect(Collectors.toSet());
         return new com.emr.tracing.models.redis.Gateway(
                 gateway.getMac(),
-                gateway.getUniqueId(),
+                gateway.getLabel(),
                 gateway.getFloor(),
                 gateway.getCoordinateX(),
                 gateway.getCoordinateY(),

@@ -9,23 +9,23 @@ import com.emr.tracing.repositories.redis.RedisGatewayRepository;
 import com.emr.tracing.repositories.redis.RedisPatientBeaconRepository;
 import com.emr.tracing.repositories.redis.RedisPatientRepository;
 import com.emr.tracing.repositories.redis.RedisRecordStateRepository;
-import com.emr.tracing.websockets.TracingSocket;
+import com.emr.tracing.websockets.NotificationSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Component
 public class StreamManager {
     private final Map<String, Stream> streamQueue = new ConcurrentHashMap<>();
+    private final Map<String, LocalDateTime> alertPatientQueue = new ConcurrentHashMap<>();
+
     private static final Logger logger = LoggerFactory.getLogger(StreamManager.class);
 
     @Autowired
@@ -36,17 +36,21 @@ public class StreamManager {
     private final RedisPatientBeaconRepository redisPatientBeaconRepository;
     @Autowired
     private final RedisPatientRepository redisPatientRepository;
+    @Autowired
+    private final NotificationSocket notificationSocket;
 
     public StreamManager(
             RedisGatewayRepository redisGatewayRepository,
             RedisRecordStateRepository redisRecordStateRepository,
             RedisPatientBeaconRepository redisPatientBeaconRepository,
-            RedisPatientRepository redisPatientRepository
+            RedisPatientRepository redisPatientRepository,
+            NotificationSocket notificationSocket
             ) {
         this.redisGatewayRepository = redisGatewayRepository;
         this.redisRecordStateRepository = redisRecordStateRepository;
         this.redisPatientBeaconRepository = redisPatientBeaconRepository;
         this.redisPatientRepository = redisPatientRepository;
+        this.notificationSocket = notificationSocket;
     }
 
     public Stream createStreamForPatient(String patientId) {
@@ -67,6 +71,7 @@ public class StreamManager {
                 recordState.getRssi(),
                 recordState.getCalibratedRssi1m(),
                 recordState.getGatewayMac(),
+                gateway.getLabel(),
                 gateway.getFloor(),
                 gateway.getCoordinateX(),
                 gateway.getCoordinateY(),
@@ -92,5 +97,16 @@ public class StreamManager {
 
     public void clearStreamStack() {
         streamQueue.clear();
+    }
+
+    public void sendPatientAlert(Stream stream) {
+        String patientId = stream.getPatient().getId();
+        if (alertPatientQueue.containsKey(patientId)) {
+            LocalDateTime lastUpdate = alertPatientQueue.get(patientId);
+            if (ChronoUnit.MINUTES.between(lastUpdate, LocalDateTime.now()) < 1) return;
+        }
+
+        alertPatientQueue.put(patientId, LocalDateTime.now());
+        notificationSocket.emitBeaconAlert(stream);
     }
 }
