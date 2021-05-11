@@ -1,6 +1,7 @@
 package com.emr.tracing.repositories.redis;
 
 import com.emr.tracing.models.Reading;
+import com.emr.tracing.models.redis.Beacon;
 import com.emr.tracing.models.redis.RecordState;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,11 +20,11 @@ public class RedisRecordStateRepository implements IRedisRecordStateRepository {
     }
 
     @Override
-    public RecordState findOrCreate(Reading stream) {
+    public RecordState findOrCreate(Reading stream, Beacon beacon) {
         RecordState recordState = findByBeaconMac(stream.getTrackingMac());
         if (recordState != null) return recordState;
 
-        recordState = new RecordState(stream.getTrackingMac(), stream.getGatewayMac(), stream.getRssi(), stream.getCalibratedRssi1m());
+        recordState = new RecordState(stream.getTrackingMac(), stream.getGatewayMac(), stream.getRssi(), beacon.getType(), stream.getCalibratedRssi1m());
         hashOperations.put(table, recordState.getTrackingMac(), recordState);
         return recordState;
     }

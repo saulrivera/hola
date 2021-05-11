@@ -1,5 +1,7 @@
 package com.emr.tracing.models.redis;
 
+import com.emr.tracing.models.BeaconType;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,21 +10,23 @@ public class RecordState implements Serializable {
     private String trackingMac;
     private String gatewayMac;
     private double rssi;
+    private BeaconType type;
     private double calibratedRssi1m;
     private Map<String, RecordStateGatewayParameters> gatewayParameters;
 
     public RecordState() {}
 
-    public RecordState(String trackingMac, String gatewayMac, double rssi, double calibratedRssi1m) {
+    public RecordState(String trackingMac, String gatewayMac, double rssi, BeaconType type, double calibratedRssi1m) {
         this.trackingMac = trackingMac;
         this.gatewayMac = gatewayMac;
         this.rssi = rssi;
+        this.type = type;
         this.calibratedRssi1m = calibratedRssi1m;
         this.gatewayParameters = new HashMap<>();
     }
 
-    public RecordState(String trackingMac, String gatewayMac, double rssi, double calibratedRssi1m, Map<String, RecordStateGatewayParameters> gatewayParameters) {
-        this(trackingMac, gatewayMac, rssi, calibratedRssi1m);
+    public RecordState(String trackingMac, String gatewayMac, double rssi, BeaconType type, double calibratedRssi1m, Map<String, RecordStateGatewayParameters> gatewayParameters) {
+        this(trackingMac, gatewayMac, rssi, type, calibratedRssi1m);
         this.gatewayParameters = gatewayParameters;
     }
 
@@ -48,6 +52,14 @@ public class RecordState implements Serializable {
 
     public void setRssi(double rssi) {
         this.rssi = rssi;
+    }
+
+    public BeaconType getType() {
+        return type;
+    }
+
+    public void setType(BeaconType type) {
+        this.type = type;
     }
 
     public double getCalibratedRssi1m() {

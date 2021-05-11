@@ -23,11 +23,13 @@ public class RedisBeaconRepository implements IRedisBeaconRepository {
     }
 
     @Override
+    public Beacon findBeaconByMac(String mac) {
+        return (Beacon) hashOperations.get(table, mac);
+    }
+
+    @Override
     public void add(Beacon beacon) {
         hashOperations.put(table, beacon.getMac(), beacon);
     }
 
-    public void delete(String mac) {
-        hashOperations.delete(table, mac);
-    }
 }

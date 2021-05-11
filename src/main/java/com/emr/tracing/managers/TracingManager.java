@@ -52,7 +52,9 @@ public class TracingManager {
     }
 
     public void processBeaconStream(Reading reading) throws Exception {
-        if (!_redisBeaconRepository.isBeaconPresent(reading.getTrackingMac())) {
+        Beacon beacon = _redisBeaconRepository.findBeaconByMac(reading.getTrackingMac());
+
+        if (beacon == null) {
             throw new Exception("Beacon doesn't exist");
         }
 
@@ -61,7 +63,7 @@ public class TracingManager {
             throw new Exception("Beacon has not been registered for tracing");
         }
 
-        RecordState recordState = _redisRecordStateRepository.findOrCreate(reading);
+        RecordState recordState = _redisRecordStateRepository.findOrCreate(reading, beacon);
 
         String lastGatewayMac = recordState.getGatewayMac();
         Gateway lastGateway = _redisGatewayRepository.findByMac(lastGatewayMac);
@@ -144,6 +146,7 @@ public class TracingManager {
                     recordState.getTrackingMac(),
                     recordState.getRssi(),
                     recordState.getCalibratedRssi1m(),
+                    recordState.getType(),
                     minimumReading.getKey(),
                     gateway.getLabel(),
                     gateway.getFloor(),
@@ -164,7 +167,7 @@ public class TracingManager {
             throw new Exception("Patient not related to this beacon");
         }
 
-        RecordState recordState = _redisRecordStateRepository.findOrCreate(reading);
+        RecordState recordState = _redisRecordStateRepository.findByBeaconMac(reading.getTrackingMac());
         if (recordState == null) {
             throw new Exception("Not record found, so patient cannot be localized");
         }
@@ -182,6 +185,7 @@ public class TracingManager {
                 recordState.getTrackingMac(),
                 recordState.getRssi(),
                 recordState.getCalibratedRssi1m(),
+                recordState.getType(),
                 recordState.getGatewayMac(),
                 gateway.getLabel(),
                 gateway.getFloor(),

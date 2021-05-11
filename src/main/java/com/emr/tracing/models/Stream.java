@@ -6,6 +6,7 @@ public class Stream {
     private String mac;
     private double rssi;
     private double calibratedRssi1m;
+    private BeaconType type;
     private String gatewayMac;
     private String gatewayLabel;
     private int gatewayFloor;
@@ -17,6 +18,7 @@ public class Stream {
             String mac,
             double rssi,
             double calibratedRssi1m,
+            BeaconType type,
             String gatewayMac,
             String gatewayLabel,
             int gatewayFloor,
@@ -27,6 +29,7 @@ public class Stream {
         this.mac = mac;
         this.rssi = rssi;
         this.calibratedRssi1m = calibratedRssi1m;
+        this.type = type;
         this.gatewayMac = gatewayMac;
         this.gatewayFloor = gatewayFloor;
         this.gatewayCoordinateX = gatewayCoordinateX;
@@ -65,6 +68,14 @@ public class Stream {
 
     public void setCalibratedRssi1m(double calibratedRssi1m) {
         this.calibratedRssi1m = calibratedRssi1m;
+    }
+    
+    public BeaconType getType() {
+        return type;
+    }
+
+    public void setType(BeaconType type) {
+        this.type = type;
     }
 
     public String getGatewayMac() {

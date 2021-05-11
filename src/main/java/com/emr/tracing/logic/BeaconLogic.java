@@ -145,7 +145,8 @@ public class BeaconLogic {
     private com.emr.tracing.models.redis.Beacon createBeaconRedis(Beacon beacon) {
         return new com.emr.tracing.models.redis.Beacon(
                 beacon.getMac(),
-                beacon.getLabel()
+                beacon.getLabel(),
+                beacon.getType()
         );
     }
 

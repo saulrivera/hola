@@ -1,5 +1,6 @@
 package com.emr.tracing.models.mongo;
 
+import com.emr.tracing.models.BeaconType;
 import org.springframework.data.annotation.Id;
 
 import java.util.UUID;
@@ -9,11 +10,13 @@ public class Beacon {
     private String id;
     private String mac;
     private String label;
+    private BeaconType type;
 
-    public Beacon(String mac, String label) {
+    public Beacon(String mac, String label, BeaconType type) {
         this.id = UUID.randomUUID().toString();
         this.mac = mac;
         this.label = label;
+        this.type = type;
     }
 
     public String getId() {
@@ -36,5 +39,13 @@ public class Beacon {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public BeaconType getType() {
+        return type;
+    }
+
+    public void setType(BeaconType type) {
+        this.type = type;
     }
 }

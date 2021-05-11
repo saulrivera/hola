@@ -70,6 +70,7 @@ public class StreamManager {
                 recordState.getTrackingMac(),
                 recordState.getRssi(),
                 recordState.getCalibratedRssi1m(),
+                recordState.getType(),
                 recordState.getGatewayMac(),
                 gateway.getLabel(),
                 gateway.getFloor(),

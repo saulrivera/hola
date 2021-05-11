@@ -3,6 +3,7 @@ package com.emr.tracing.config;
 import com.emr.tracing.logic.BeaconLogic;
 import com.emr.tracing.logic.GatewayLogic;
 import com.emr.tracing.logic.PatientLogic;
+import com.emr.tracing.models.BeaconType;
 import com.emr.tracing.models.mongo.Beacon;
 import com.emr.tracing.models.mongo.Patient;
 import com.emr.tracing.models.neo4j.Gateway;
@@ -31,11 +32,11 @@ public class DataInit {
     public void loadData() {
         if (beaconLogic.isTableEmpty()) {
             Arrays.stream(new Beacon[] {
-                    new Beacon("C9494755A35C", "EMRB1"),
-                    new Beacon("FF5ECB2AF4FC", "EMRB2"),
-                    new Beacon("C0E9E0B42457", "EMRB3"),
-                    new Beacon("FDF323E48926", "EMRB4"),
-                    new Beacon("DD4366C9EE97", "EMRB5")
+                    new Beacon("C9494755A35C", "EMRB1", BeaconType.PATIENT),
+                    new Beacon("FF5ECB2AF4FC", "EMRB2", BeaconType.PATIENT),
+                    new Beacon("C0E9E0B42457", "EMRB3", BeaconType.STAFF),
+                    new Beacon("FDF323E48926", "EMRB4", BeaconType.STAFF),
+                    new Beacon("DD4366C9EE97", "EMRB5", BeaconType.ASSET)
             }).forEach(beaconLogic::add);
         }
 
