@@ -1,8 +1,12 @@
 package com.emr.tracing.managers;
 
 import com.emr.tracing.config.TracingConfProperties;
+import com.emr.tracing.models.BeaconType;
 import com.emr.tracing.models.Reading;
-import com.emr.tracing.models.Stream;
+import com.emr.tracing.models.socket.AssetStream;
+import com.emr.tracing.models.socket.PatientStream;
+import com.emr.tracing.models.socket.StaffStream;
+import com.emr.tracing.models.socket.Stream;
 import com.emr.tracing.models.redis.*;
 import com.emr.tracing.repositories.redis.*;
 import com.emr.tracing.utils.KalmanFilter;
@@ -29,6 +33,14 @@ public class TracingManager {
     @Autowired
     private final RedisPatientRepository _redisPatientRepository;
     @Autowired
+    private final RedisStaffRepository _redisStaffRepository;
+    @Autowired
+    private final RedisStaffBeaconRepository _redisStaffBeaconRepository;
+    @Autowired
+    private final RedisAssetBeaconRepository _redisAssetBeaconRepository;
+    @Autowired
+    private final RedisAssetRepository _redisAssetRepository;
+    @Autowired
     private final StreamManager _streamManager;
 
     private static final Logger logger = LoggerFactory.getLogger(TracingManager.class);
@@ -40,6 +52,10 @@ public class TracingManager {
             RedisRecordStateRepository redisRecordStateRepository,
             RedisGatewayRepository redisGatewayRepository,
             RedisPatientRepository redisPatientRepository,
+            RedisStaffRepository redisStaffRepository,
+            RedisStaffBeaconRepository redisStaffBeaconRepository,
+            RedisAssetRepository redisAssetRepository,
+            RedisAssetBeaconRepository redisAssetBeaconRepository,
             StreamManager streamManager
     ) {
         _tracingConfigProperties = tracingConfProperties;
@@ -48,6 +64,10 @@ public class TracingManager {
         _redisRecordStateRepository = redisRecordStateRepository;
         _redisGatewayRepository = redisGatewayRepository;
         _redisPatientRepository = redisPatientRepository;
+        _redisStaffRepository = redisStaffRepository;
+        _redisStaffBeaconRepository = redisStaffBeaconRepository;
+        _redisAssetBeaconRepository = redisAssetBeaconRepository;
+        _redisAssetRepository = redisAssetRepository;
         _streamManager = streamManager;
     }
 
@@ -55,12 +75,15 @@ public class TracingManager {
         Beacon beacon = _redisBeaconRepository.findBeaconByMac(reading.getTrackingMac());
 
         if (beacon == null) {
-            throw new Exception("Beacon doesn't exist");
+            throw new Exception("Beacon doesn't exist: " + reading.getTrackingMac());
         }
 
-        PatientBeacon patientBeacon = _redisPatientBeaconRepository.findByActiveAndBeaconMac(reading.getTrackingMac());
-        if (patientBeacon == null) {
-            throw new Exception("Beacon has not been registered for tracing");
+        PatientBeacon patientBeacon = null;
+        if (beacon.getType() == BeaconType.PATIENT) {
+            patientBeacon = _redisPatientBeaconRepository.findByActiveAndBeaconMac(reading.getTrackingMac());
+            if (patientBeacon == null) {
+                throw new Exception("Beacon has not been registered for tracing");
+            }
         }
 
         RecordState recordState = _redisRecordStateRepository.findOrCreate(reading, beacon);
@@ -140,22 +163,63 @@ public class TracingManager {
             recordState.setGatewayMac(minimumReading.getKey());
 
             Gateway gateway = _redisGatewayRepository.findByMac(recordState.getGatewayMac());
-            Patient patient = _redisPatientRepository.findById(patientBeacon.getPatientId());
 
-            Stream stream = new Stream(
-                    recordState.getTrackingMac(),
-                    recordState.getRssi(),
-                    recordState.getCalibratedRssi1m(),
-                    recordState.getType(),
-                    minimumReading.getKey(),
-                    gateway.getLabel(),
-                    gateway.getFloor(),
-                    gateway.getCoordinateX(),
-                    gateway.getCoordinateY(),
-                    patient
-            );
+            switch (beacon.getType()) {
+                case PATIENT:
+                    assert patientBeacon != null;
+                    Patient patient = _redisPatientRepository.findById(patientBeacon.getPatientId());
 
-            _streamManager.add(stream);
+                    PatientStream patientStream = new PatientStream(
+                            recordState.getTrackingMac(),
+                            recordState.getRssi(),
+                            recordState.getCalibratedRssi1m(),
+                            recordState.getType(),
+                            minimumReading.getKey(),
+                            gateway.getLabel(),
+                            gateway.getFloor(),
+                            gateway.getCoordinateX(),
+                            gateway.getCoordinateY(),
+                            patient
+                    );
+                    _streamManager.add(patientStream);
+                    break;
+                case STAFF:
+                    StaffBeacon staffBeacon = _redisStaffBeaconRepository.findByBeaconMac(beacon.getMac());
+                    Staff staff = _redisStaffRepository.findById(staffBeacon.getStaffId());
+
+                    StaffStream staffStream = new StaffStream(
+                            recordState.getTrackingMac(),
+                            recordState.getRssi(),
+                            recordState.getCalibratedRssi1m(),
+                            recordState.getType(),
+                            minimumReading.getKey(),
+                            gateway.getLabel(),
+                            gateway.getFloor(),
+                            gateway.getCoordinateX(),
+                            gateway.getCoordinateY(),
+                            staff
+                    );
+                    _streamManager.add(staffStream);
+                    break;
+                case ASSET:
+                    AssetBeacon assetBeacon = _redisAssetBeaconRepository.findByBeaconMac(beacon.getMac());
+                    Asset asset = _redisAssetRepository.findById(assetBeacon.getAssetId());
+
+                    AssetStream assetStream = new AssetStream(
+                            recordState.getTrackingMac(),
+                            recordState.getRssi(),
+                            recordState.getCalibratedRssi1m(),
+                            recordState.getType(),
+                            minimumReading.getKey(),
+                            gateway.getLabel(),
+                            gateway.getFloor(),
+                            gateway.getCoordinateX(),
+                            gateway.getCoordinateY(),
+                            asset
+                    );
+                    _streamManager.add(assetStream);
+                    break;
+            }
         }
 
         _redisRecordStateRepository.update(recordState);
@@ -181,7 +245,7 @@ public class TracingManager {
             throw new Exception("Gateway not found");
         }
 
-        Stream stream = new Stream(
+        PatientStream stream = new PatientStream(
                 recordState.getTrackingMac(),
                 recordState.getRssi(),
                 recordState.getCalibratedRssi1m(),

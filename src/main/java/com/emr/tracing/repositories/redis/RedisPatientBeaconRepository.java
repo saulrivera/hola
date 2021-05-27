@@ -27,7 +27,7 @@ public class RedisPatientBeaconRepository implements IRedisPatientBeaconReposito
     }
 
     @Override
-    public void save(PatientBeacon patientBeacon) {
+    public void add(PatientBeacon patientBeacon) {
         hashOperations.put(table, patientBeacon.getBeaconMac(), patientBeacon);
     }
 

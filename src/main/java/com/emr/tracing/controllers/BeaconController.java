@@ -3,7 +3,8 @@ package com.emr.tracing.controllers;
 import com.emr.tracing.dtos.BeaconDTO;
 import com.emr.tracing.logic.BeaconLogic;
 import com.emr.tracing.mappers.Mapper;
-import com.emr.tracing.models.Stream;
+import com.emr.tracing.models.BeaconType;
+import com.emr.tracing.models.socket.Stream;
 import com.emr.tracing.websockets.TracingSocket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,7 @@ public class BeaconController {
     public List<BeaconDTO> getAvailableBeacons() {
         return beaconLogic.getAvailable()
                 .stream()
+                .filter(beacon -> beacon.getType().equals(BeaconType.PATIENT))
                 .map(beacon -> mapper.getMapper().map(beacon, BeaconDTO.class))
                 .collect(Collectors.toList());
     }

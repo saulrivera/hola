@@ -1,6 +1,6 @@
 package com.emr.tracing.websockets;
 
-import com.emr.tracing.models.Stream;
+import com.emr.tracing.models.socket.Stream;
 import com.emr.tracing.models.socket.Message;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

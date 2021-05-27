@@ -23,7 +23,8 @@ public class Gateway {
 
     public Gateway() {}
 
-    public Gateway(String label, String mac, int floor, double coordinateX, double coordinateY) {
+    public Gateway(long id, String label, String mac, int floor, double coordinateX, double coordinateY) {
+        this.id = id;
         this.label = label;
         this.mac = mac;
         this.floor = floor;
@@ -31,13 +32,17 @@ public class Gateway {
         this.coordinateY = coordinateY;
     }
 
-    public Gateway(String label, String mac, int floor, double coordinateX, double coordinateY, Set<Gateway> siblings) {
-        this(label, mac, floor, coordinateX, coordinateY);
+    public Gateway(long id, String label, String mac, int floor, double coordinateX, double coordinateY, Set<Gateway> siblings) {
+        this(id, label, mac, floor, coordinateX, coordinateY);
         this.siblings = siblings;
     }
 
     public long getId() {
         return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getLabel() {

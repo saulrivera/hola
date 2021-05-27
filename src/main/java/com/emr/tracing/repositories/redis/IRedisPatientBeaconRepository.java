@@ -10,6 +10,6 @@ public interface IRedisPatientBeaconRepository {
     PatientBeacon findByActiveAndPatientId(String patientID);
     List<PatientBeacon> findByActive();
     Map<String, PatientBeacon> findAll();
-    void save(PatientBeacon patientBeacon);
+    void add(PatientBeacon patientBeacon);
     void deleteByBeaconMac(String beaconId);
 }

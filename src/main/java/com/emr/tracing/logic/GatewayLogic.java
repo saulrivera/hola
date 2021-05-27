@@ -6,6 +6,7 @@ import com.emr.tracing.repositories.redis.RedisGatewayRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,13 @@ public class GatewayLogic {
         gatewayRepository.save(gateway);
 
         redisGatewayRepository.add(createGatewayRedis(gateway));
+    }
+
+    public void add(List<Gateway> gateways) {
+        gatewayRepository.saveAll(gateways);
+        gateways.stream()
+                .map(this::createGatewayRedis)
+                .forEach(redisGatewayRepository::add);
     }
 
     public void syncWithRedis() {

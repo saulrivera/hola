@@ -1,5 +1,6 @@
-package com.emr.tracing.models;
+package com.emr.tracing.models.socket;
 
+import com.emr.tracing.models.BeaconType;
 import com.emr.tracing.models.redis.Patient;
 
 public class Stream {
@@ -12,7 +13,6 @@ public class Stream {
     private int gatewayFloor;
     private double gatewayCoordinateX;
     private double gatewayCoordinateY;
-    private Patient patient;
 
     public Stream(
             String mac,
@@ -23,8 +23,7 @@ public class Stream {
             String gatewayLabel,
             int gatewayFloor,
             double gatewayCoordinateX,
-            double gatewayCoordinateY,
-            Patient patient
+            double gatewayCoordinateY
     ) {
         this.mac = mac;
         this.rssi = rssi;
@@ -34,7 +33,6 @@ public class Stream {
         this.gatewayFloor = gatewayFloor;
         this.gatewayCoordinateX = gatewayCoordinateX;
         this.gatewayCoordinateY = gatewayCoordinateY;
-        this.patient = patient;
         this.gatewayLabel = gatewayLabel;
     }
 
@@ -108,13 +106,5 @@ public class Stream {
 
     public void setGatewayCoordinateY(double gatewayCoordinateY) {
         this.gatewayCoordinateY = gatewayCoordinateY;
-    }
-
-    public Patient getPatient() {
-        return patient;
-    }
-
-    public void setPatient(Patient patient) {
-        this.patient = patient;
     }
 }

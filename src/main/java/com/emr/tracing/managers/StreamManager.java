@@ -1,6 +1,8 @@
 package com.emr.tracing.managers;
 
-import com.emr.tracing.models.Stream;
+import com.emr.tracing.models.BeaconType;
+import com.emr.tracing.models.socket.PatientStream;
+import com.emr.tracing.models.socket.Stream;
 import com.emr.tracing.models.redis.Gateway;
 import com.emr.tracing.models.redis.Patient;
 import com.emr.tracing.models.redis.PatientBeacon;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 @Component
 public class StreamManager {
     private final Map<String, Stream> streamQueue = new ConcurrentHashMap<>();
+    private final Map<BeaconType, Map<String, Stream>> streamHistory = new ConcurrentHashMap<>();
     private final Map<String, LocalDateTime> alertPatientQueue = new ConcurrentHashMap<>();
 
     private static final Logger logger = LoggerFactory.getLogger(StreamManager.class);
@@ -66,7 +69,7 @@ public class StreamManager {
         Gateway gateway = redisGatewayRepository.findByMac(recordState.getGatewayMac());
         if (gateway == null) return null;
 
-        return new Stream(
+        return new PatientStream(
                 recordState.getTrackingMac(),
                 recordState.getRssi(),
                 recordState.getCalibratedRssi1m(),
@@ -80,15 +83,23 @@ public class StreamManager {
         );
     }
 
-    public List<Stream> getActiveStreams() {
-        List<PatientBeacon> patientBeacons = redisPatientBeaconRepository.findByActive();
-        return patientBeacons.stream().map(patientBeacon -> {
-            Patient patient = redisPatientRepository.findById(patientBeacon.getPatientId());
-            return createStreamForPatient(patient.getId());
-        }).collect(Collectors.toList());
+    public Map<BeaconType, List<Stream>> getActiveStreams() {
+        var dictionary = new HashMap<BeaconType, List<Stream>>();
+        streamHistory.forEach((key, value) -> {
+            dictionary.put(key, new ArrayList<>(value.values()));
+        });
+        return dictionary;
+    }
+
+    public void removeStreamFromHistory(String beaconMac) {
+        streamHistory.remove(beaconMac);
     }
 
     public void add(Stream stream) {
+        var streamHistoryForKey = streamHistory.getOrDefault(stream.getType(), new ConcurrentHashMap<>());
+        streamHistoryForKey.put(stream.getMac(), stream);
+
+        streamHistory.put(stream.getType(), streamHistoryForKey);
         streamQueue.put(stream.getMac(), stream);
     }
 
@@ -100,7 +111,7 @@ public class StreamManager {
         streamQueue.clear();
     }
 
-    public void sendPatientAlert(Stream stream) {
+    public void sendPatientAlert(PatientStream stream) {
         String patientId = stream.getPatient().getId();
         if (alertPatientQueue.containsKey(patientId)) {
             LocalDateTime lastUpdate = alertPatientQueue.get(patientId);

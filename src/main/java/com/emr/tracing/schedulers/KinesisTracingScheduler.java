@@ -62,7 +62,7 @@ public class KinesisTracingScheduler {
                 configsBuilder.retrievalConfig()
                 .retrievalSpecificConfig(pollingConfig)
                 .initialPositionInStreamExtended(
-                        InitialPositionInStreamExtended.newInitialPosition(InitialPositionInStream.LATEST)
+                        InitialPositionInStreamExtended.newInitialPosition(InitialPositionInStream.TRIM_HORIZON)
                 )
         );
 

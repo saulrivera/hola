@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  tracing:
+    build: .
+    environment:
+      mongoHost: mongo
+      redisHost: redis
+      neo4jHost: bolt://neo4j:7687
+    volumes:
+      - $HOME/.aws/credentials:/root/.aws/credentials:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+      - neo4j
+      - mongo
+  redis:
+    image: redis
+    restart: always
+    ports:
+    - "6379:6379"
+  neo4j:
+    image: neo4j
+    restart: always
+    environment:
+      NEO4J_AUTH: neo4j/s3cr3t
+    ports:
+    - "7474:7474"
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+    - "27017:27017"
+

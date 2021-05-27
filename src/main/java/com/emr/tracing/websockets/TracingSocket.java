@@ -1,7 +1,7 @@
 package com.emr.tracing.websockets;
 
 import com.emr.tracing.managers.StreamManager;
-import com.emr.tracing.models.Stream;
+import com.emr.tracing.models.socket.Stream;
 import com.emr.tracing.models.socket.Message;
 import com.emr.tracing.models.socket.User;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -53,7 +53,8 @@ public class TracingSocket extends TextWebSocketHandler {
                     User user = new User(uuids.incrementAndGet(), json.get("data").asText());
                     sessionList.add(session);
                     broadcastToOthers(session, new Message("join", new ObjectMapper().writeValueAsString(user)));
-                    Message activeBeaconMessage = new Message("activeBeacons", new ObjectMapper().writeValueAsString(streamManager.getActiveStreams()));
+
+                    Message activeBeaconMessage = new Message("cachedData", new ObjectMapper().writeValueAsString(streamManager.getActiveStreams()));
                     emit(session, activeBeaconMessage);
                 }
                 break;
@@ -63,7 +64,6 @@ public class TracingSocket extends TextWebSocketHandler {
             default:
                 break;
         }
-
     }
 
     private void emit(WebSocketSession session, Message message) throws IOException {
@@ -98,12 +98,15 @@ public class TracingSocket extends TextWebSocketHandler {
 
     public void broadcastTracking(Stream data) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        Message message = new Message("tracing", objectMapper.writeValueAsString(data));
+        String type = data.getType().toString();
+        Message message = new Message(type, objectMapper.writeValueAsString(data));
         logger.info("Message sent: " + message);
         broadcast(message);
     }
 
     public void emitBeaconDetachment(Stream stream) throws IOException {
+        streamManager.removeStreamFromHistory(stream.getMac());
+
         ObjectMapper objectMapper = new ObjectMapper();
         Message message = new Message("detach", objectMapper.writeValueAsString(stream));
         broadcast(message);

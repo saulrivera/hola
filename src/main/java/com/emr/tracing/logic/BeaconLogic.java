@@ -1,7 +1,7 @@
 package com.emr.tracing.logic;
 
 import com.emr.tracing.managers.StreamManager;
-import com.emr.tracing.models.Stream;
+import com.emr.tracing.models.socket.Stream;
 import com.emr.tracing.models.mongo.Beacon;
 import com.emr.tracing.models.mongo.PatientBeacon;
 import com.emr.tracing.repositories.mongo.MongoBeaconRepository;
@@ -99,7 +99,7 @@ public class BeaconLogic {
         );
         patientBeaconRepository.save(patientBeacon);
         var redisPatientBeacon = createPatientBeacon(patientBeacon);
-        redisPatientBeaconRepository.save(redisPatientBeacon);
+        redisPatientBeaconRepository.add(redisPatientBeacon);
 
         if (oldRegistry != null) {
             oldRegistry.setActive(false);
@@ -126,7 +126,7 @@ public class BeaconLogic {
         assert redisPatientBeacon != null;
         redisPatientBeacon.setActive(false);
 
-        redisPatientBeaconRepository.save(redisPatientBeacon);
+        redisPatientBeaconRepository.add(redisPatientBeacon);
 
         return stream;
     }
@@ -139,7 +139,7 @@ public class BeaconLogic {
         patientBeaconRepository.findAll()
                 .stream()
                 .map(this::createPatientBeacon)
-                .forEach(redisPatientBeaconRepository::save);
+                .forEach(redisPatientBeaconRepository::add);
     }
 
     private com.emr.tracing.models.redis.Beacon createBeaconRedis(Beacon beacon) {
