@@ -49,7 +49,8 @@ public class NotificationSocket extends TextWebSocketHandler {
         synchronized (sessionList) {
             sessionList.forEach(session -> {
                 try {
-                    emit(session, new Message("beaconAlert", stream));
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    emit(session, new Message("beaconAlert", objectMapper.writeValueAsString(stream)));
                 } catch (IOException exception) {
                     exception.printStackTrace();
                 }

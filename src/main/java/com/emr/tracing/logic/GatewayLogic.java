@@ -57,6 +57,8 @@ public class GatewayLogic {
                 gateway.getFloor(),
                 gateway.getCoordinateX(),
                 gateway.getCoordinateY(),
+                gateway.getA(),
+                gateway.getB(),
                 siblings
         );
     }

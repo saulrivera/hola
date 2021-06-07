@@ -1,4 +1,4 @@
-DIR_NAME :=
+VERSION := 0.0.1
 
 build:
 	mvn clean package
@@ -11,3 +11,8 @@ run_docker_compose:
 
 build_and_run_compose:
 	mvn clean package && docker-compose up --build
+
+deploy:
+	mvn clean package &&\
+	docker build -t ghcr.io/outlandhq/emr/trackingsystem:$(VERSION) . &&\
+	docker push ghcr.io/outlandhq/emr/trackingsystem:$(VERSION)

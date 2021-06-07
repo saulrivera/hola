@@ -18,22 +18,26 @@ public class Gateway {
     private int floor;
     private double coordinateX;
     private double coordinateY;
+    private double a;
+    private double b;
     @Relationship(type = "siblings")
     private Set<Gateway> siblings = new HashSet<>();
 
     public Gateway() {}
 
-    public Gateway(long id, String label, String mac, int floor, double coordinateX, double coordinateY) {
+    public Gateway(long id, String label, String mac, int floor, double coordinateX, double coordinateY, double a, double b) {
         this.id = id;
         this.label = label;
         this.mac = mac;
         this.floor = floor;
         this.coordinateX = coordinateX;
         this.coordinateY = coordinateY;
+        this.a = a;
+        this.b = b;
     }
 
-    public Gateway(long id, String label, String mac, int floor, double coordinateX, double coordinateY, Set<Gateway> siblings) {
-        this(id, label, mac, floor, coordinateX, coordinateY);
+    public Gateway(long id, String label, String mac, int floor, double coordinateX, double coordinateY, double a, double b, Set<Gateway> siblings) {
+        this(id, label, mac, floor, coordinateX, coordinateY, a, b);
         this.siblings = siblings;
     }
 
@@ -83,6 +87,22 @@ public class Gateway {
 
     public void setCoordinateY(double coordinateY) {
         this.coordinateY = coordinateY;
+    }
+
+    public double getA() {
+        return a;
+    }
+
+    public void setA(double a) {
+        this.a = a;
+    }
+
+    public double getB() {
+        return b;
+    }
+
+    public void setB(double b) {
+        this.b = b;
     }
 
     public Set<Gateway> getSiblings() {

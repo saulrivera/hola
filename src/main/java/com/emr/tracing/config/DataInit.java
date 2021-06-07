@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,19 +23,23 @@ public class DataInit {
     private final AssetLogic assetLogic;
     @Autowired
     private final StaffLogic staffLogic;
+    @Autowired
+    private final RecordStateLogic recordStateLogic;
 
     public DataInit(
             BeaconLogic beaconLogic,
             PatientLogic patientLogic,
             GatewayLogic gatewayLogic,
             AssetLogic assetLogic,
-            StaffLogic staffLogic
+            StaffLogic staffLogic,
+            RecordStateLogic recordStateLogic
     ) {
         this.beaconLogic = beaconLogic;
         this.patientLogic = patientLogic;
         this.gatewayLogic = gatewayLogic;
         this.assetLogic = assetLogic;
         this.staffLogic = staffLogic;
+        this.recordStateLogic = recordStateLogic;
     }
 
     @Bean
@@ -60,8 +63,8 @@ public class DataInit {
         }
 
         if (gatewayLogic.isTableEmpty()) {
-            var gateway1 = new Gateway(0, "EMRG1", "68B9D3D1928C", 0, 820.0, 600.0);
-            var gateway2 = new Gateway(1, "EMRG2", "68B9D3D196F0", 0, 100.0, 600.0);
+            var gateway1 = new Gateway(0, "EMRG1", "68B9D3D1928C", 0, 820.0, 600.0, 1, 0);
+            var gateway2 = new Gateway(1, "EMRG2", "68B9D3D196F0", 0, 100.0, 600.0, 1, 0);
 
             List.of(gateway1, gateway2).forEach(gatewayLogic::add);
 
@@ -92,5 +95,6 @@ public class DataInit {
         gatewayLogic.syncWithRedis();
         staffLogic.syncWithRedis();
         assetLogic.syncWithRedis();
+        recordStateLogic.flushTable();
     }
 }

@@ -86,8 +86,10 @@ public class TracingManager {
             }
         }
 
+        boolean isPresent = _redisRecordStateRepository.findByBeaconMac(reading.getTrackingMac()) != null;
         RecordState recordState = _redisRecordStateRepository.findOrCreate(reading, beacon);
 
+        Gateway readingGateway = _redisGatewayRepository.findByMac(reading.getGatewayMac());
         String lastGatewayMac = recordState.getGatewayMac();
         Gateway lastGateway = _redisGatewayRepository.findByMac(lastGatewayMac);
         if (lastGateway == null) {
@@ -126,9 +128,9 @@ public class TracingManager {
             }
         }
 
-        double clearedRssi = kalmanFilter.filter(reading.getRssi());
+        double clearedRssi = kalmanFilter.filter(computeSignal(reading.getRssi(), readingGateway));
 
-        if (Math.abs(clearedRssi - recordState.getRssi()) < Math.abs(recordState.getRssi() * _tracingConfigProperties.getThresholdSignal())) {
+        if (isPresent && surpassedThreshold(clearedRssi, recordState.getRssi())) {
             throw new Exception("Received signal strength not enough to consider change.");
         }
 
@@ -159,7 +161,7 @@ public class TracingManager {
         recordState.setRssi(minimumReading.getValue().getX());
         recordState.setCalibratedRssi1m(reading.getCalibratedRssi1m());
 
-        if (needsBroadcast) {
+        if (!isPresent || needsBroadcast) {
             recordState.setGatewayMac(minimumReading.getKey());
 
             Gateway gateway = _redisGatewayRepository.findByMac(recordState.getGatewayMac());
@@ -259,5 +261,13 @@ public class TracingManager {
         );
 
         _streamManager.sendPatientAlert(stream);
+    }
+
+    private double computeSignal(double signal, Gateway gateway) {
+        return gateway.getA() * signal + gateway.getB();
+    }
+
+    private boolean surpassedThreshold(double signal, double lastSignal) {
+        return Math.abs(signal - lastSignal) < Math.abs(lastSignal * _tracingConfigProperties.getThresholdSignal());
     }
 }
