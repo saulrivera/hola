@@ -1,15 +1,18 @@
 package com.emr.tracing.config;
 
 import com.emr.tracing.logic.*;
-import com.emr.tracing.models.BeaconType;
+import com.emr.tracing.managers.DataTranslation;
+import com.emr.tracing.models.csv.Siblings;
 import com.emr.tracing.models.mongo.*;
 import com.emr.tracing.models.neo4j.Gateway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 public class DataInit {
@@ -25,6 +28,8 @@ public class DataInit {
     private final StaffLogic staffLogic;
     @Autowired
     private final RecordStateLogic recordStateLogic;
+    @Autowired
+    private final DataTranslation translation;
 
     public DataInit(
             BeaconLogic beaconLogic,
@@ -32,7 +37,8 @@ public class DataInit {
             GatewayLogic gatewayLogic,
             AssetLogic assetLogic,
             StaffLogic staffLogic,
-            RecordStateLogic recordStateLogic
+            RecordStateLogic recordStateLogic,
+            DataTranslation translation
     ) {
         this.beaconLogic = beaconLogic;
         this.patientLogic = patientLogic;
@@ -40,54 +46,53 @@ public class DataInit {
         this.assetLogic = assetLogic;
         this.staffLogic = staffLogic;
         this.recordStateLogic = recordStateLogic;
+        this.translation = translation;
     }
 
     @Bean
     public void loadData() {
-        Beacon[] beacons = new Beacon[] {
-                new Beacon("E38B580AE0A8", "EMRB1", BeaconType.PATIENT),
-                new Beacon("FF5ECB2AF4FC", "EMRB2", BeaconType.PATIENT),
-                new Beacon("C0E9E0B42457", "EMRB3", BeaconType.STAFF),
-                new Beacon("FDF323E48926", "EMRB4", BeaconType.STAFF),
-                new Beacon("DD4366C9EE97", "EMRB5", BeaconType.ASSET)
-        };
+        List<Beacon> beacons = translation.loadBeacons();
 
         if (beaconLogic.isTableEmpty()) {
-            Arrays.stream(beacons).forEach(beaconLogic::add);
+            beacons.forEach(beaconLogic::add);
+        }
+
+        List<Gateway> gateways = translation.loadGateways();
+        if (gatewayLogic.isTableEmpty()) {
+            gateways.forEach(gatewayLogic::add);
+
+            // Solve for siblings relationships
+            for (Gateway gateway : gateways) {
+                List<Long> siblingsIds = translation.getIdOfSiblingsForGatewayId(gateway.getId());
+                List<Gateway> siblings = gateways
+                        .stream()
+                        .filter(gat -> siblingsIds.contains(gat.getId()))
+                        .collect(Collectors.toList());
+                gateway.getSiblings().addAll(siblings);
+                gatewayLogic.add(gateway);
+            }
+        }
+
+        List<Asset> assets = translation.loadAssets();
+        if (assetLogic.isTableEmpty()) {
+            assets.forEach(assetLogic::add);
+
+            assets.forEach(asset -> assetLogic.associate(asset, translation.beaconMacForAsset(asset.getId())));
+        }
+
+        List<Staff> staff = translation.loadStaff();
+        if (staffLogic.isTableEmpty()) {
+            staff.forEach(staffLogic::add);
+
+            for (Staff staffElement : staff) {
+                staffLogic.associate(staffElement, translation.beaconMacForStaff(staffElement.getId()));
+            }
         }
 
         if (patientLogic.isTableEmpty()) {
             Arrays.stream(new Patient[] {
                     new Patient("Saul", "Gerardo", "Rivera", "42", "123-456-7890", "super@outlandhq.com")
             }).forEach(patientLogic::add);
-        }
-
-        if (gatewayLogic.isTableEmpty()) {
-            var gateway1 = new Gateway(0, "EMRG1", "68B9D3D1928C", 0, 820.0, 600.0, 1, 0);
-            var gateway2 = new Gateway(1, "EMRG2", "68B9D3D196F0", 0, 100.0, 600.0, 1, 0);
-
-            List.of(gateway1, gateway2).forEach(gatewayLogic::add);
-
-            gateway1.getSiblings().add(gateway2);
-            gatewayLogic.add(gateway1);
-        }
-
-        if (staffLogic.isTableEmpty()) {
-            Staff[] staffs = new Staff[] {
-                    new Staff("Diana", "Tenorio", "Bolanos", StaffKind.NURSE),
-                    new Staff("Shlomi", "", "Saporta", StaffKind.PROVIDER)
-            };
-            Arrays.stream(staffs).forEach(staffLogic::add);
-
-            staffLogic.associate(staffs[0], beacons[2].getMac());
-            staffLogic.associate(staffs[1], beacons[3].getMac());
-        }
-
-        if (assetLogic.isTableEmpty()) {
-            Asset asset = new Asset("EKG", AssetKind.MONITOR);
-            assetLogic.add(asset);
-
-            assetLogic.associate(asset, beacons[4].getMac());
         }
 
         beaconLogic.syncWithRedis();

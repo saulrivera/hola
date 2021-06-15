@@ -86,13 +86,16 @@ public class StreamManager {
     public Map<BeaconType, List<Stream>> getActiveStreams() {
         var dictionary = new HashMap<BeaconType, List<Stream>>();
         streamHistory.forEach((key, value) -> {
+            System.out.println(key);
+            System.out.println(value.values());
             dictionary.put(key, new ArrayList<>(value.values()));
         });
+        System.out.println(dictionary);
         return dictionary;
     }
 
     public void removeStreamFromHistory(String beaconMac) {
-        streamHistory.remove(beaconMac);
+        streamHistory.get(BeaconType.PATIENT).remove(beaconMac);
     }
 
     public void add(Stream stream) {

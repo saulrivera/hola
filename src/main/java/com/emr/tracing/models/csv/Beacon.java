@@ -1,45 +1,32 @@
-package com.emr.tracing.models.mongo;
+package com.emr.tracing.models.csv;
 
 import com.emr.tracing.models.BeaconType;
-import org.springframework.data.annotation.Id;
-
-import java.util.UUID;
+import com.opencsv.bean.CsvBindByName;
 
 public class Beacon {
-    @Id
+    @CsvBindByName(column = "id")
     private String id;
+    @CsvBindByName(column = "mac")
     private String mac;
+    @CsvBindByName(column = "label")
     private String label;
+    @CsvBindByName(column = "type")
     private BeaconType type;
-
-    public Beacon() { }
-
-    public Beacon(String id, String mac, String label, BeaconType type) {
-        this.id = id;
-        this.mac = mac;
-        this.label = label;
-        this.type = type;
-    }
-
-    public Beacon(String mac, String label, BeaconType type) {
-        this.id = UUID.randomUUID().toString();
-        this.mac = mac;
-        this.label = label;
-        this.type = type;
-    }
 
     public String getId() {
         return id;
     }
 
-    public void setId(String id) { this.id = id; }
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getMac() {
         return mac;
     }
 
     public void setMac(String mac) {
-        this.mac = mac;
+        this.mac = mac.trim().toUpperCase();
     }
 
     public String getLabel() {
@@ -56,5 +43,14 @@ public class Beacon {
 
     public void setType(BeaconType type) {
         this.type = type;
+    }
+
+    @Override
+    public String toString() {
+        return "Beacon{" +
+                "mac='" + mac + '\'' +
+                ", label='" + label + '\'' +
+                ", type=" + type +
+                '}';
     }
 }
