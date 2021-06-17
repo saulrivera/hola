@@ -2,12 +2,10 @@ package com.emr.tracing.managers;
 
 import com.emr.tracing.models.csv.*;
 import com.opencsv.bean.CsvToBeanBuilder;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ResourceUtils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -140,51 +138,51 @@ public class DataTranslation {
         return listSiblingsOptional.get().getSiblingsList();
     }
 
-    private FileReader getBeaconFile() {
+    private InputStreamReader getBeaconFile() {
         try {
-            File file = ResourceUtils.getFile("classpath:beacons.csv");
-            return new FileReader(file);
-        } catch (FileNotFoundException e) {
+            InputStream file = new ClassPathResource("classpath:beacons.csv").getInputStream();
+            return new InputStreamReader(file);
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private FileReader getGatewaysFile() {
+    private InputStreamReader getGatewaysFile() {
         try {
-            File file = ResourceUtils.getFile("classpath:gateways.csv");
-            return new FileReader(file);
-        } catch (FileNotFoundException e) {
+            InputStream file = new ClassPathResource("classpath:gateways.csv").getInputStream();
+            return new InputStreamReader(file);
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private FileReader getAssetsFile() {
+    private InputStreamReader getAssetsFile() {
         try {
-            File file = ResourceUtils.getFile("classpath:assets.csv");
-            return new FileReader(file);
-        } catch (FileNotFoundException e) {
+            InputStream file = new ClassPathResource("classpath:assets.csv").getInputStream();
+            return new InputStreamReader(file);
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private FileReader getStaffFile() {
+    private InputStreamReader getStaffFile() {
         try {
-            File file = ResourceUtils.getFile("classpath:staff.csv");
-            return new FileReader(file);
-        } catch (FileNotFoundException e) {
+            InputStream file = new ClassPathResource("classpath:staff.csv").getInputStream();
+            return new InputStreamReader(file);
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private FileReader getSiblingsFile() {
+    private InputStreamReader getSiblingsFile() {
         try {
-            File file = ResourceUtils.getFile("classpath:siblings.tsv");
-            return new FileReader(file);
-        } catch (FileNotFoundException e) {
+            InputStream file = new ClassPathResource("classpath:siblings.tsv").getInputStream();
+            return new InputStreamReader(file);
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
