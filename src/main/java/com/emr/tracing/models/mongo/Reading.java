@@ -1,4 +1,4 @@
-package com.emr.tracing.models;
+package com.emr.tracing.models.mongo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

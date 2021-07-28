@@ -2,12 +2,12 @@ package com.emr.tracing.managers;
 
 import com.emr.tracing.config.TracingConfProperties;
 import com.emr.tracing.models.BeaconType;
-import com.emr.tracing.models.Reading;
+import com.emr.tracing.models.mongo.Reading;
 import com.emr.tracing.models.socket.AssetStream;
 import com.emr.tracing.models.socket.PatientStream;
 import com.emr.tracing.models.socket.StaffStream;
-import com.emr.tracing.models.socket.Stream;
 import com.emr.tracing.models.redis.*;
+import com.emr.tracing.repositories.mongo.MongoReadingRepository;
 import com.emr.tracing.repositories.redis.*;
 import com.emr.tracing.utils.KalmanFilter;
 import org.slf4j.Logger;
@@ -41,6 +41,8 @@ public class TracingManager {
     @Autowired
     private final RedisAssetRepository _redisAssetRepository;
     @Autowired
+    private final MongoReadingRepository _mongoReadingRepository;
+    @Autowired
     private final StreamManager _streamManager;
 
     private static final Logger logger = LoggerFactory.getLogger(TracingManager.class);
@@ -56,6 +58,7 @@ public class TracingManager {
             RedisStaffBeaconRepository redisStaffBeaconRepository,
             RedisAssetRepository redisAssetRepository,
             RedisAssetBeaconRepository redisAssetBeaconRepository,
+            MongoReadingRepository mongoReadingRepository,
             StreamManager streamManager
     ) {
         _tracingConfigProperties = tracingConfProperties;
@@ -68,10 +71,13 @@ public class TracingManager {
         _redisStaffBeaconRepository = redisStaffBeaconRepository;
         _redisAssetBeaconRepository = redisAssetBeaconRepository;
         _redisAssetRepository = redisAssetRepository;
+        _mongoReadingRepository = mongoReadingRepository;
         _streamManager = streamManager;
     }
 
     public void processBeaconStream(Reading reading) throws Exception {
+        _mongoReadingRepository.save(reading);
+
         Beacon beacon = _redisBeaconRepository.findBeaconByMac(reading.getTrackingMac());
 
         if (beacon == null) {

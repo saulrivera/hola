@@ -139,52 +139,32 @@ public class DataTranslation {
     }
 
     private InputStreamReader getBeaconFile() {
-        try {
-            InputStream file = new ClassPathResource("classpath:beacons.csv").getInputStream();
-            return new InputStreamReader(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        final InputStream file = getClass().getClassLoader().getResourceAsStream("beacons.csv");
+        assert file != null;
+        return new InputStreamReader(file);
     }
 
     private InputStreamReader getGatewaysFile() {
-        try {
-            InputStream file = new ClassPathResource("classpath:gateways.csv").getInputStream();
-            return new InputStreamReader(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        final InputStream file = getClass().getClassLoader().getResourceAsStream("gateways.csv");
+        assert file != null;
+        return new InputStreamReader(file);
     }
 
     private InputStreamReader getAssetsFile() {
-        try {
-            InputStream file = new ClassPathResource("classpath:assets.csv").getInputStream();
-            return new InputStreamReader(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        final InputStream file = getClass().getClassLoader().getResourceAsStream("assets.csv");
+        assert file != null;
+        return new InputStreamReader(file);
     }
 
     private InputStreamReader getStaffFile() {
-        try {
-            InputStream file = new ClassPathResource("classpath:staff.csv").getInputStream();
-            return new InputStreamReader(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        final InputStream file = getClass().getClassLoader().getResourceAsStream("staff.csv");
+        assert file != null;
+        return new InputStreamReader(file);
     }
 
     private InputStreamReader getSiblingsFile() {
-        try {
-            InputStream file = new ClassPathResource("classpath:siblings.tsv").getInputStream();
-            return new InputStreamReader(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        final InputStream file = getClass().getClassLoader().getResourceAsStream("siblings.tsv");
+        assert file != null;
+        return new InputStreamReader(file);
     }
 }

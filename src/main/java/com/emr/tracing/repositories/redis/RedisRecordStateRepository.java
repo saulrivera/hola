@@ -1,14 +1,12 @@
 package com.emr.tracing.repositories.redis;
 
-import com.emr.tracing.models.Reading;
+import com.emr.tracing.models.mongo.Reading;
 import com.emr.tracing.models.redis.Beacon;
 import com.emr.tracing.models.redis.RecordState;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 @Repository

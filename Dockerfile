@@ -1,12 +1,24 @@
 FROM openjdk:11.0.11-jre
 
-COPY target/tracing-0.0.1-SNAPSHOT.jar /tracing.jar
+COPY target/tracing-*.jar /tracing.jar
 
-ENV mongoPassword root
-ENV mongoHost localhost
-ENV redisHost localhost
-ENV neo4jHost bolt://localhost:7687
-ENV neo4jUser neo4j
-ENV neo4jPass s3cr3t
+ENV AWS_PROFILE emr
+ENV AWS_REGION us-east-1
+ENV AWS_KINESIS_STREAM_NAME tracking-stage-us-east-1-kinesis-data-stream
+
+ENV MONGO_USERNAME root
+ENV MONGO_PASSWORD root
+ENV MONGO_DATABASE tracing
+ENV MONGO_PORT 27017
+ENV MONGO_HOST localhost
+
+ENV REDIS_HOST localhost
+ENV REDIS_PORT 6379
+
+ENV NEO4J_HOST bolt://localhost:7687
+ENV NEO4J_USERNAME neo4j
+ENV NEO4J_PASSWORD s3cr3t
+
+ENV BEACON_ALERT_IDENTIFIER 4A854B730C014354A578B238DD26631D
 
 CMD ["java", "-jar", "/tracing.jar"]

@@ -1,7 +1,7 @@
 package com.emr.tracing.managers;
 
 import com.emr.tracing.config.TracingConfProperties;
-import com.emr.tracing.models.Reading;
+import com.emr.tracing.models.mongo.Reading;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;

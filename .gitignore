@@ -40,3 +40,7 @@ out/
 
 ### macOS ###
 .DS_Store
+
+
+### Developer ###
+.dev-setup
