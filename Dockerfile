@@ -1,6 +1,15 @@
-FROM openjdk:11.0.11-jre
+FROM  openjdk:11.0.11-jre AS base
+WORKDIR /app
+EXPOSE 8080
 
-COPY target/tracing-*.jar /tracing.jar
+FROM maven:3-openjdk-11 AS build
+WORKDIR /src
+COPY . .
+RUN mvn package
+
+FROM base AS final
+WORKDIR /app
+COPY --from=build /src/target/tracking.jar .
 
 ENV AWS_PROFILE emr
 ENV AWS_REGION us-east-1
@@ -21,4 +30,4 @@ ENV NEO4J_PASSWORD s3cr3t
 
 ENV BEACON_ALERT_IDENTIFIER 4A854B730C014354A578B238DD26631D
 
-CMD ["java", "-jar", "/tracing.jar"]
+ENTRYPOINT sleep 10 && java -jar /app/tracking.jar
