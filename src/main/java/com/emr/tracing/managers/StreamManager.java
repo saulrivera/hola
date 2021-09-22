@@ -7,10 +7,7 @@ import com.emr.tracing.models.redis.Gateway;
 import com.emr.tracing.models.redis.Patient;
 import com.emr.tracing.models.redis.PatientBeacon;
 import com.emr.tracing.models.redis.RecordState;
-import com.emr.tracing.repositories.redis.RedisGatewayRepository;
-import com.emr.tracing.repositories.redis.RedisPatientBeaconRepository;
-import com.emr.tracing.repositories.redis.RedisPatientRepository;
-import com.emr.tracing.repositories.redis.RedisRecordStateRepository;
+import com.emr.tracing.repositories.redis.*;
 import com.emr.tracing.websockets.NotificationSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +23,6 @@ import java.util.stream.Collectors;
 @Component
 public class StreamManager {
     private final Map<String, Stream> streamQueue = new ConcurrentHashMap<>();
-    private final Map<BeaconType, Map<String, Stream>> streamHistory = new ConcurrentHashMap<>();
     private final Map<String, LocalDateTime> alertPatientQueue = new ConcurrentHashMap<>();
 
     private static final Logger logger = LoggerFactory.getLogger(StreamManager.class);
@@ -41,19 +37,23 @@ public class StreamManager {
     private final RedisPatientRepository redisPatientRepository;
     @Autowired
     private final NotificationSocket notificationSocket;
+    @Autowired
+    private final RedisStreamHistoryRepository streamHistoryRepository;
 
     public StreamManager(
             RedisGatewayRepository redisGatewayRepository,
             RedisRecordStateRepository redisRecordStateRepository,
             RedisPatientBeaconRepository redisPatientBeaconRepository,
             RedisPatientRepository redisPatientRepository,
-            NotificationSocket notificationSocket
+            NotificationSocket notificationSocket,
+            RedisStreamHistoryRepository streamHistoryRepository
             ) {
         this.redisGatewayRepository = redisGatewayRepository;
         this.redisRecordStateRepository = redisRecordStateRepository;
         this.redisPatientBeaconRepository = redisPatientBeaconRepository;
         this.redisPatientRepository = redisPatientRepository;
         this.notificationSocket = notificationSocket;
+        this.streamHistoryRepository = streamHistoryRepository;
     }
 
     public Stream createStreamForPatient(String patientId) {
@@ -84,25 +84,15 @@ public class StreamManager {
     }
 
     public Map<BeaconType, List<Stream>> getActiveStreams() {
-        var dictionary = new HashMap<BeaconType, List<Stream>>();
-        streamHistory.forEach((key, value) -> {
-            System.out.println(key);
-            System.out.println(value.values());
-            dictionary.put(key, new ArrayList<>(value.values()));
-        });
-        System.out.println(dictionary);
-        return dictionary;
+        return streamHistoryRepository.getHistory();
     }
 
     public void removeStreamFromHistory(String beaconMac) {
-        streamHistory.get(BeaconType.PATIENT).remove(beaconMac);
+        streamHistoryRepository.removeFromTypeBeacon(BeaconType.PATIENT, beaconMac);
     }
 
     public void add(Stream stream) {
-        var streamHistoryForKey = streamHistory.getOrDefault(stream.getType(), new ConcurrentHashMap<>());
-        streamHistoryForKey.put(stream.getMac(), stream);
-
-        streamHistory.put(stream.getType(), streamHistoryForKey);
+        streamHistoryRepository.addStreamFromType(stream.getType(), stream);
         streamQueue.put(stream.getMac(), stream);
     }
 

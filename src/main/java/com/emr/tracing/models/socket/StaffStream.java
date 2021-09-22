@@ -6,6 +6,8 @@ import com.emr.tracing.models.redis.Staff;
 public class StaffStream extends Stream {
     private Staff staff;
 
+    public StaffStream() {}
+
     public StaffStream(
             String mac,
             double rssi,

@@ -6,6 +6,10 @@ import com.emr.tracing.models.redis.Asset;
 public class AssetStream extends Stream {
     private Asset asset;
 
+    public AssetStream() {
+        super();
+    }
+
     public AssetStream(
             String mac,
             double rssi,

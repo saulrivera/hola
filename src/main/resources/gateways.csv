@@ -1,4 +1,4 @@
 id,label,mac,floor,positionX,positionY,a,b
-0,Nurse Station,68B9D3D1928C,0,560,600,1,0
-1,Room 43,68B9D3D196F0,0,840,600,1,0
+0,Nurse Station,68B9D3D1928C,0,-360,25,1,0
+1,Room 43,68B9D3D196F0,0,-123,-60,1,0
 2,Room 32,68B9D3D196F3,0,-50,50,1,0

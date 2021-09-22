@@ -36,6 +36,8 @@ public class Stream {
         this.gatewayLabel = gatewayLabel;
     }
 
+    public Stream() {}
+
     public String getMac() {
         return mac;
     }

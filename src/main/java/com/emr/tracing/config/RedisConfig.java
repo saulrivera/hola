@@ -1,5 +1,6 @@
 package com.emr.tracing.config;
 
+import com.emr.tracing.models.BeaconType;
 import com.emr.tracing.models.redis.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -102,6 +103,17 @@ public class RedisConfig {
     @Bean
     public RedisTemplate<String, StaffBeacon> redisStaffBeaconTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, StaffBeacon> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(connectionFactory);
+        redisTemplate.setDefaultSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashKeySerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return redisTemplate;
+    }
+
+    @Bean
+    public RedisTemplate<String, StreamHistory> redisStreamHistoryTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, StreamHistory> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(connectionFactory);
         redisTemplate.setDefaultSerializer(new GenericJackson2JsonRedisSerializer());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
