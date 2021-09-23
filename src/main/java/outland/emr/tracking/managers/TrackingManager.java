@@ -21,7 +21,7 @@ import java.util.*;
 @Component
 public class TrackingManager {
     @Autowired
-    private final TrackingConfProperties _tracingConfigProperties;
+    private final TrackingConfProperties _trackingConfigProperties;
     @Autowired
     private final RedisBeaconRepository _redisBeaconRepository;
     @Autowired
@@ -61,7 +61,7 @@ public class TrackingManager {
             MongoReadingRepository mongoReadingRepository,
             StreamManager streamManager
     ) {
-        _tracingConfigProperties = trackingConfProperties;
+        _trackingConfigProperties = trackingConfProperties;
         _redisBeaconRepository = redisBeaconRepository;
         _redisPatientBeaconRepository = redisPatientBeaconRepository;
         _redisRecordStateRepository = redisRecordStateRepository;
@@ -79,28 +79,24 @@ public class TrackingManager {
         _mongoReadingRepository.save(reading);
 
         Beacon beacon = _redisBeaconRepository.findBeaconByMac(reading.getTrackingMac());
-
-        if (beacon == null) {
-            throw new Exception("Beacon doesn't exist: " + reading.getTrackingMac());
-        }
+        assert beacon != null : "Beacon doesn't exist: " + reading.getTrackingMac();
 
         PatientBeacon patientBeacon = null;
         if (beacon.getType() == BeaconType.PATIENT) {
             patientBeacon = _redisPatientBeaconRepository.findByActiveAndBeaconMac(reading.getTrackingMac());
-            if (patientBeacon == null) {
-                throw new Exception("Beacon has not been registered for tracing");
-            }
+            assert patientBeacon != null : "Beacon has not been registered for tracing";
         }
 
         boolean isPresent = _redisRecordStateRepository.findByBeaconMac(reading.getTrackingMac()) != null;
+
         RecordState recordState = _redisRecordStateRepository.findOrCreate(reading, beacon);
 
         Gateway readingGateway = _redisGatewayRepository.findByMac(reading.getGatewayMac());
         String lastGatewayMac = recordState.getGatewayMac();
         Gateway lastGateway = _redisGatewayRepository.findByMac(lastGatewayMac);
-        if (lastGateway == null) {
-            throw new Exception("Gateway from incoming reading is not found.");
-        }
+
+        assert lastGateway != null : "Gateway from incoming reading is not found.";
+
         Set<String> nearMacGateways = lastGateway.getSiblings();
         nearMacGateways.add(reading.getGatewayMac());
 
@@ -111,15 +107,15 @@ public class TrackingManager {
         KalmanFilter kalmanFilter;
         if (recordState.getGatewayParameters().isEmpty()) {
             kalmanFilter = new KalmanFilter(
-                    _tracingConfigProperties.getrKalmanFilter(),
-                    _tracingConfigProperties.getqKalmanFilter()
+                    _trackingConfigProperties.getrKalmanFilter(),
+                    _trackingConfigProperties.getqKalmanFilter()
             );
         } else {
             RecordStateGatewayParameters savedParameters = recordState.getGatewayParameters().get(reading.getGatewayMac());
             if (savedParameters != null) {
                 kalmanFilter = new KalmanFilter(
-                        _tracingConfigProperties.getrKalmanFilter(),
-                        _tracingConfigProperties.getqKalmanFilter(),
+                        _trackingConfigProperties.getrKalmanFilter(),
+                        _trackingConfigProperties.getqKalmanFilter(),
                         savedParameters.getA(),
                         savedParameters.getB(),
                         savedParameters.getC(),
@@ -128,15 +124,15 @@ public class TrackingManager {
                 );
             } else {
                 kalmanFilter = new KalmanFilter(
-                        _tracingConfigProperties.getrKalmanFilter(),
-                        _tracingConfigProperties.getqKalmanFilter()
+                        _trackingConfigProperties.getrKalmanFilter(),
+                        _trackingConfigProperties.getqKalmanFilter()
                 );
             }
         }
 
-        double clearedRssi = kalmanFilter.filter(computeSignal(reading.getRssi(), readingGateway));
+        double clearedRssi = kalmanFilter.filter(computeGatewaySignal(reading.getRssi(), readingGateway));
 
-        if (isPresent && surpassedThreshold(clearedRssi, recordState.getRssi())) {
+        if (isPresent && !surpassedThreshold(clearedRssi, recordState.getRssi())) {
             throw new Exception("Received signal strength not enough to consider change.");
         }
 
@@ -269,11 +265,11 @@ public class TrackingManager {
         _streamManager.sendPatientAlert(stream);
     }
 
-    private double computeSignal(double signal, Gateway gateway) {
+    private double computeGatewaySignal(double signal, Gateway gateway) {
         return gateway.getA() * signal + gateway.getB();
     }
 
     private boolean surpassedThreshold(double signal, double lastSignal) {
-        return Math.abs(signal - lastSignal) < Math.abs(lastSignal * _tracingConfigProperties.getThresholdSignal());
+        return Math.abs(signal - lastSignal) > Math.abs(lastSignal * _trackingConfigProperties.getThresholdSignal());
     }
 }
