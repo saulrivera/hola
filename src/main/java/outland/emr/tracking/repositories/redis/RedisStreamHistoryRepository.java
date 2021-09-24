@@ -2,6 +2,7 @@ package outland.emr.tracking.repositories.redis;
 
 import outland.emr.tracking.models.BeaconType;
 import outland.emr.tracking.models.redis.StreamHistory;
+import outland.emr.tracking.models.socket.PatientStream;
 import outland.emr.tracking.models.socket.Stream;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -29,6 +30,15 @@ public class RedisStreamHistoryRepository implements IRedisStreamHistoryReposito
         streamListByType.getStreams().remove(beaconId);
 
         hashOperations.put(table, beaconType.name(), streamListByType);
+    }
+
+    public Stream findPatientHistoryByBeaconMac(String beaconMac) {
+        var streamListByType = (StreamHistory) hashOperations.get(table, BeaconType.PATIENT.name());
+
+        if (streamListByType.getStreams().containsKey(beaconMac)) {
+            return streamListByType.getStreams().get(beaconMac);
+        }
+        return null;
     }
 
     @Override

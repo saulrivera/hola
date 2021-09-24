@@ -1,6 +1,7 @@
 package outland.emr.tracking.logic;
 
 import outland.emr.tracking.managers.StreamManager;
+import outland.emr.tracking.models.socket.PatientStream;
 import outland.emr.tracking.models.socket.Stream;
 import outland.emr.tracking.models.mongo.Beacon;
 import outland.emr.tracking.models.mongo.PatientBeacon;
@@ -10,6 +11,7 @@ import outland.emr.tracking.repositories.redis.RedisBeaconRepository;
 import outland.emr.tracking.repositories.redis.RedisPatientBeaconRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import outland.emr.tracking.repositories.redis.RedisStreamHistoryRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,19 +31,23 @@ public class BeaconLogic {
     private final RedisPatientBeaconRepository redisPatientBeaconRepository;
     @Autowired
     private final StreamManager streamManager;
+    @Autowired
+    private final RedisStreamHistoryRepository streamHistoryRepository;
 
     public BeaconLogic(
             MongoBeaconRepository beaconRepository,
             MongoPatientBeaconRepository patientBeaconRepository,
             RedisBeaconRepository redisBeaconRepository,
             RedisPatientBeaconRepository redisPatientBeaconRepository,
-            StreamManager streamManager
+            StreamManager streamManager,
+            RedisStreamHistoryRepository streamHistoryRepository
             ) {
         this.beaconRepository = beaconRepository;
         this.patientBeaconRepository = patientBeaconRepository;
         this.redisBeaconRepository = redisBeaconRepository;
         this.redisPatientBeaconRepository = redisPatientBeaconRepository;
         this.streamManager = streamManager;
+        this.streamHistoryRepository = streamHistoryRepository;
     }
 
     public boolean isTableEmpty() {
@@ -108,6 +114,12 @@ public class BeaconLogic {
         }
 
         assert redisPatientBeacon != null;
+
+        Stream patientStream = streamHistoryRepository.findPatientHistoryByBeaconMac(beacon.getMac());
+        if (patientStream != null) {
+            streamManager.add(patientStream);
+        }
+
         return streamManager.createStreamForPatient(redisPatientBeacon);
     }
 
