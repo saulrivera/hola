@@ -6,6 +6,8 @@ import outland.emr.tracking.models.redis.Patient;
 public class PatientStream extends Stream {
     Patient patient;
 
+    public PatientStream() {}
+
     public PatientStream(
             String mac,
             double rssi,
