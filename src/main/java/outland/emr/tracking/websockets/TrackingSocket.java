@@ -23,15 +23,15 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
-public class TracingSocket extends TextWebSocketHandler {
-    private static final Logger logger = LoggerFactory.getLogger(TracingSocket.class);
+public class TrackingSocket extends TextWebSocketHandler {
+    private static final Logger logger = LoggerFactory.getLogger(TrackingSocket.class);
     private static final Set<WebSocketSession> sessionList = Collections.synchronizedSet(new HashSet<>());
     private static final AtomicLong uuids = new AtomicLong(0);
 
     @Autowired
     private final StreamManager streamManager;
 
-    public TracingSocket(StreamManager streamManager) {
+    public TrackingSocket(StreamManager streamManager) {
         this.streamManager = streamManager;
     }
 

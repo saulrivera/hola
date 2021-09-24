@@ -5,7 +5,7 @@ import outland.emr.tracking.managers.StreamManager;
 import outland.emr.tracking.mappers.Mapper;
 import outland.emr.tracking.logic.PatientLogic;
 import outland.emr.tracking.models.mongo.Patient;
-import outland.emr.tracking.websockets.TracingSocket;
+import outland.emr.tracking.websockets.TrackingSocket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,14 +20,14 @@ public class PatientController {
     @Autowired
     private final PatientLogic patientLogic;
     @Autowired
-    private final TracingSocket tracingSocket;
+    private final TrackingSocket trackingSocket;
     @Autowired
     private final StreamManager streamManager;
 
-    public PatientController(Mapper mapper, PatientLogic patientLogic, TracingSocket tracingSocket, StreamManager streamManager) {
+    public PatientController(Mapper mapper, PatientLogic patientLogic, TrackingSocket trackingSocket, StreamManager streamManager) {
         this.mapper = mapper;
         this.patientLogic = patientLogic;
-        this.tracingSocket = tracingSocket;
+        this.trackingSocket = trackingSocket;
         this.streamManager = streamManager;
     }
 
@@ -52,7 +52,7 @@ public class PatientController {
         Patient patient = mapper.getMapper().map(patientDTO, Patient.class);
         Patient updatedPatient = patientLogic.update(patient);
 
-        tracingSocket.emitBeaconUpdate(streamManager.createStreamForPatient(patient.getId()));
+        trackingSocket.emitBeaconUpdate(streamManager.createStreamForPatient(patient.getId()));
 
         return mapper.getMapper().map(updatedPatient, PatientDTO.class);
     }

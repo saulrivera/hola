@@ -1,7 +1,7 @@
 package outland.emr.tracking.schedulers;
 
 import outland.emr.tracking.managers.StreamManager;
-import outland.emr.tracking.websockets.TracingSocket;
+import outland.emr.tracking.websockets.TrackingSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +16,11 @@ public class BroadcastStreamScheduler {
     @Autowired
     private final StreamManager streamManager;
     @Autowired
-    private final TracingSocket tracingSocket;
+    private final TrackingSocket trackingSocket;
 
-    public BroadcastStreamScheduler(StreamManager streamManager, TracingSocket tracingSocket) {
+    public BroadcastStreamScheduler(StreamManager streamManager, TrackingSocket trackingSocket) {
         this.streamManager = streamManager;
-        this.tracingSocket = tracingSocket;
+        this.trackingSocket = trackingSocket;
     }
 
     @Scheduled(fixedRate = 1000)
@@ -35,7 +35,7 @@ public class BroadcastStreamScheduler {
         }
         streamQueue.forEach(it -> {
             try {
-                tracingSocket.broadcastTracking(it);
+                trackingSocket.broadcastTracking(it);
             } catch (IOException e) {
                 e.printStackTrace();
             }

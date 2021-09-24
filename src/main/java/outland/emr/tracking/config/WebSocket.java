@@ -1,7 +1,8 @@
 package outland.emr.tracking.config;
 
 import outland.emr.tracking.websockets.NotificationSocket;
-import outland.emr.tracking.websockets.TracingSocket;
+import outland.emr.tracking.websockets.PersonnelStatusSocket;
+import outland.emr.tracking.websockets.TrackingSocket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -12,19 +13,26 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class WebSocket implements WebSocketConfigurer {
     @Autowired
-    private final TracingSocket tracingSocket;
+    private final TrackingSocket trackingSocket;
     @Autowired
     private final NotificationSocket notificationSocket;
+    @Autowired
+    private final PersonnelStatusSocket personnelStatusSocket;
 
-    public WebSocket(TracingSocket tracingSocket, NotificationSocket notificationSocket) {
-        this.tracingSocket = tracingSocket;
+    public WebSocket(
+            TrackingSocket trackingSocket,
+            NotificationSocket notificationSocket,
+            PersonnelStatusSocket personnelStatusSocket) {
+        this.trackingSocket = trackingSocket;
         this.notificationSocket = notificationSocket;
+        this.personnelStatusSocket = personnelStatusSocket;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
-        webSocketHandlerRegistry.addHandler(tracingSocket, "/tracing").setAllowedOrigins("*");
+        webSocketHandlerRegistry.addHandler(trackingSocket, "/tracking").setAllowedOrigins("*");
         webSocketHandlerRegistry.addHandler(notificationSocket, "/notification").setAllowedOrigins("*");
+        webSocketHandlerRegistry.addHandler(personnelStatusSocket, "/personnelStatus").setAllowedOrigins("*");
     }
 }
 

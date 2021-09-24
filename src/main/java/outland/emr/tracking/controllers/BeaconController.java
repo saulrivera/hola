@@ -5,7 +5,7 @@ import outland.emr.tracking.logic.BeaconLogic;
 import outland.emr.tracking.mappers.Mapper;
 import outland.emr.tracking.models.BeaconType;
 import outland.emr.tracking.models.socket.Stream;
-import outland.emr.tracking.websockets.TracingSocket;
+import outland.emr.tracking.websockets.TrackingSocket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,12 +21,12 @@ public class BeaconController {
     @Autowired
     private final Mapper mapper;
     @Autowired
-    private final TracingSocket tracingSocket;
+    private final TrackingSocket trackingSocket;
 
-    public BeaconController(BeaconLogic beaconLogic, Mapper mapper, TracingSocket tracingSocket) {
+    public BeaconController(BeaconLogic beaconLogic, Mapper mapper, TrackingSocket trackingSocket) {
         this.beaconLogic = beaconLogic;
         this.mapper = mapper;
-        this.tracingSocket = tracingSocket;
+        this.trackingSocket = trackingSocket;
     }
 
     @GetMapping("/available")
@@ -43,7 +43,7 @@ public class BeaconController {
         Stream stream = beaconLogic.associate(patientId, uniqueId);
         if (stream != null) {
             try {
-                tracingSocket.emitBeaconUpdate(stream);
+                trackingSocket.emitBeaconUpdate(stream);
             } catch (IOException ignored) { }
         }
     }
@@ -53,7 +53,7 @@ public class BeaconController {
         Stream stream = beaconLogic.disassociate(beaconLabel);
         if (stream != null) {
             try {
-                tracingSocket.emitBeaconDetachment(stream);
+                trackingSocket.emitBeaconDetachment(stream);
             } catch (IOException ignored) { }
         }
     }
