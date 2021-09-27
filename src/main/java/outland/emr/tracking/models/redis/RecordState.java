@@ -11,22 +11,20 @@ public class RecordState implements Serializable {
     private String gatewayMac;
     private double rssi;
     private BeaconType type;
-    private double calibratedRssi1m;
     private Map<String, RecordStateGatewayParameters> gatewayParameters;
 
     public RecordState() {}
 
-    public RecordState(String trackingMac, String gatewayMac, double rssi, BeaconType type, double calibratedRssi1m) {
+    public RecordState(String trackingMac, String gatewayMac, double rssi, BeaconType type) {
         this.trackingMac = trackingMac;
         this.gatewayMac = gatewayMac;
         this.rssi = rssi;
         this.type = type;
-        this.calibratedRssi1m = calibratedRssi1m;
         this.gatewayParameters = new HashMap<>();
     }
 
-    public RecordState(String trackingMac, String gatewayMac, double rssi, BeaconType type, double calibratedRssi1m, Map<String, RecordStateGatewayParameters> gatewayParameters) {
-        this(trackingMac, gatewayMac, rssi, type, calibratedRssi1m);
+    public RecordState(String trackingMac, String gatewayMac, double rssi, BeaconType type, Map<String, RecordStateGatewayParameters> gatewayParameters) {
+        this(trackingMac, gatewayMac, rssi, type);
         this.gatewayParameters = gatewayParameters;
     }
 
@@ -60,14 +58,6 @@ public class RecordState implements Serializable {
 
     public void setType(BeaconType type) {
         this.type = type;
-    }
-
-    public double getCalibratedRssi1m() {
-        return calibratedRssi1m;
-    }
-
-    public void setCalibratedRssi1m(double calibratedRssi1m) {
-        this.calibratedRssi1m = calibratedRssi1m;
     }
 
     public Map<String, RecordStateGatewayParameters> getGatewayParameters() {

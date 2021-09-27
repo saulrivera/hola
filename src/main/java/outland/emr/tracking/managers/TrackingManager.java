@@ -79,12 +79,18 @@ public class TrackingManager {
         _mongoReadingRepository.save(reading);
 
         Beacon beacon = _redisBeaconRepository.findBeaconByMac(reading.getTrackingMac());
-        assert beacon != null : "Beacon doesn't exist: " + reading.getTrackingMac();
+        if (beacon == null) {
+            System.out.println("Beacon doesn't exist: " + reading.getTrackingMac());
+            return;
+        }
 
         PatientBeacon patientBeacon = null;
         if (beacon.getType() == BeaconType.PATIENT) {
             patientBeacon = _redisPatientBeaconRepository.findByActiveAndBeaconMac(reading.getTrackingMac());
-            assert patientBeacon != null : "Beacon has not been registered for tracing";
+            if (patientBeacon == null) {
+                System.out.println("Beacon has not been registered for tracing");
+                return;
+            }
         }
 
         boolean isPresent = _redisRecordStateRepository.findByBeaconMac(reading.getTrackingMac()) != null;
@@ -95,7 +101,10 @@ public class TrackingManager {
         String lastGatewayMac = recordState.getGatewayMac();
         Gateway lastGateway = _redisGatewayRepository.findByMac(lastGatewayMac);
 
-        assert lastGateway != null : "Gateway from incoming reading is not found.";
+        if (lastGateway == null) {
+            System.out.println("Gateway from incoming reading is not found.");
+            return;
+        }
 
         Set<String> nearMacGateways = lastGateway.getSiblings();
         nearMacGateways.add(reading.getGatewayMac());
@@ -161,7 +170,6 @@ public class TrackingManager {
         boolean needsBroadcast = !collator.equals(minimumReading.getKey(), recordState.getGatewayMac());
 
         recordState.setRssi(minimumReading.getValue().getX());
-        recordState.setCalibratedRssi1m(reading.getCalibratedRssi1m());
 
         if (!isPresent || needsBroadcast) {
             recordState.setGatewayMac(minimumReading.getKey());
@@ -176,7 +184,6 @@ public class TrackingManager {
                     PatientStream patientStream = new PatientStream(
                             recordState.getTrackingMac(),
                             recordState.getRssi(),
-                            recordState.getCalibratedRssi1m(),
                             recordState.getType(),
                             minimumReading.getKey(),
                             gateway.getLabel(),
@@ -194,7 +201,6 @@ public class TrackingManager {
                     StaffStream staffStream = new StaffStream(
                             recordState.getTrackingMac(),
                             recordState.getRssi(),
-                            recordState.getCalibratedRssi1m(),
                             recordState.getType(),
                             minimumReading.getKey(),
                             gateway.getLabel(),
@@ -212,7 +218,6 @@ public class TrackingManager {
                     AssetStream assetStream = new AssetStream(
                             recordState.getTrackingMac(),
                             recordState.getRssi(),
-                            recordState.getCalibratedRssi1m(),
                             recordState.getType(),
                             minimumReading.getKey(),
                             gateway.getLabel(),
@@ -252,7 +257,6 @@ public class TrackingManager {
         PatientStream stream = new PatientStream(
                 recordState.getTrackingMac(),
                 recordState.getRssi(),
-                recordState.getCalibratedRssi1m(),
                 recordState.getType(),
                 recordState.getGatewayMac(),
                 gateway.getLabel(),

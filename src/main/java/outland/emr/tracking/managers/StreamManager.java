@@ -71,7 +71,6 @@ public class StreamManager {
         return new PatientStream(
                 recordState.getTrackingMac(),
                 recordState.getRssi(),
-                recordState.getCalibratedRssi1m(),
                 recordState.getType(),
                 recordState.getGatewayMac(),
                 gateway.getLabel(),

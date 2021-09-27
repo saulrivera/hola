@@ -4,25 +4,22 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
+import outland.emr.tracking.models.Detection;
 
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Reading {
+public class Reading extends Detection {
     @Id
     private String id = UUID.randomUUID().toString();
-    @JsonProperty("TimeStamp")
+    @JsonProperty("timestamp")
     private String timestamp;
-    @JsonProperty("BLEMac(hex)")
-    private String trackingMac;
-    @JsonProperty("DeviceMac(hex)")
-    private String gatewayMac;
-    @JsonProperty("RSSI(dBm)")
+    @JsonProperty("rssi")
     private double rssi;
-    @JsonProperty("RSSI@1m(dBm)")
-    private double calibratedRssi1m;
-    @JsonProperty("iBeaconUUID(hex)")
+    @JsonProperty("ibeaconUuid")
     private String uuid;
+    @JsonIgnore
+    private String gatewayMac;
 
     public String getId() { return id; }
 
@@ -37,22 +34,6 @@ public class Reading {
         this.timestamp = timestamp;
     }
 
-    public String getTrackingMac() {
-        return trackingMac;
-    }
-
-    public void setTrackingMac(String trackingMac) {
-        this.trackingMac = trackingMac;
-    }
-
-    public String getGatewayMac() {
-        return gatewayMac;
-    }
-
-    public void setGatewayMac(String gatewayMac) {
-        this.gatewayMac = gatewayMac;
-    }
-
     public double getRssi() {
         return rssi;
     }
@@ -61,19 +42,19 @@ public class Reading {
         this.rssi = rssi;
     }
 
-    public double getCalibratedRssi1m() {
-        return calibratedRssi1m;
-    }
-
-    public void setCalibratedRssi1m(double calibratedRssi1m) {
-        this.calibratedRssi1m = calibratedRssi1m;
-    }
-
     public String getUuid() {
         return uuid;
     }
 
     public void setUuid(String uuid) {
         this.uuid = uuid;
+    }
+
+    public String getGatewayMac() {
+        return gatewayMac;
+    }
+
+    public void setGatewayMac(String gatewayMac) {
+        this.gatewayMac = gatewayMac;
     }
 }

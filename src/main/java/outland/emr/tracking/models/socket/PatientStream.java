@@ -11,7 +11,6 @@ public class PatientStream extends Stream {
     public PatientStream(
             String mac,
             double rssi,
-            double calibratedRssi1m,
             BeaconType type,
             String gatewayMac,
             String gatewayLabel,
@@ -20,7 +19,7 @@ public class PatientStream extends Stream {
             double gatewayCoordinateY,
             Patient patient
     ) {
-        super(mac, rssi, calibratedRssi1m, type, gatewayMac, gatewayLabel, gatewayFloor, gatewayCoordinateX, gatewayCoordinateY);
+        super(mac, rssi, type, gatewayMac, gatewayLabel, gatewayFloor, gatewayCoordinateX, gatewayCoordinateY);
         this.patient = patient;
     }
 

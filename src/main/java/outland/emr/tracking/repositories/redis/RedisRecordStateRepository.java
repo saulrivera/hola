@@ -32,7 +32,7 @@ public class RedisRecordStateRepository implements IRedisRecordStateRepository {
         RecordState recordState = findByBeaconMac(stream.getTrackingMac());
         if (recordState != null) return recordState;
 
-        recordState = new RecordState(stream.getTrackingMac(), stream.getGatewayMac(), stream.getRssi(), beacon.getType(), stream.getCalibratedRssi1m());
+        recordState = new RecordState(stream.getTrackingMac(), stream.getGatewayMac(), stream.getRssi(), beacon.getType());
         hashOperations.put(table, recordState.getTrackingMac(), recordState);
         return recordState;
     }

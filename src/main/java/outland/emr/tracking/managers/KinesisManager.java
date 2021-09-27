@@ -1,6 +1,8 @@
 package outland.emr.tracking.managers;
 
 import outland.emr.tracking.config.TrackingConfProperties;
+import outland.emr.tracking.models.Detection;
+import outland.emr.tracking.models.DetectionType;
 import outland.emr.tracking.models.mongo.Reading;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,6 +19,7 @@ import software.amazon.kinesis.processor.ShardRecordProcessor;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Optional;
 
 @Component
 public class KinesisManager implements ShardRecordProcessor {
@@ -56,12 +59,20 @@ public class KinesisManager implements ShardRecordProcessor {
                 CharBuffer originalData = StandardCharsets.UTF_8.decode(record.data());
                 try {
                     Reading[] responses = new ObjectMapper().readValue(originalData.toString(), Reading[].class);
-                    Arrays.stream(responses).forEach(response -> {
+                    Optional<Reading> gatewayDetection = Arrays.stream(responses).filter(it -> it.getType().equals(DetectionType.Gateway)).findFirst();
+
+                    if (gatewayDetection.isEmpty()) {
+                        return;
+                    }
+
+                    Arrays.stream(responses).filter(it -> it.getType().equals(DetectionType.iBeacon)).forEach(reading -> {
+                        reading.setGatewayMac(gatewayDetection.get().getTrackingMac());
+
                         try {
-                            if (response.getUuid().equals(trackingConfProperties.getBeaconAlertId())) {
-                                trackingManager.alertEmittedBy(response);
+                            if (reading.getUuid().equals(trackingConfProperties.getBeaconAlertId())) {
+                                trackingManager.alertEmittedBy(reading);
                             } else {
-                                trackingManager.processBeaconStream(response);
+                                trackingManager.processBeaconStream(reading);
                             }
                         } catch (Exception e) {
                             logger.error(e.getMessage());

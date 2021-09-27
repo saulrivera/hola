@@ -11,7 +11,6 @@ public class StaffStream extends Stream {
     public StaffStream(
             String mac,
             double rssi,
-            double calibratedRssi1m,
             BeaconType type,
             String gatewayMac,
             String gatewayLabel,
@@ -20,7 +19,7 @@ public class StaffStream extends Stream {
             double gatewayCoordinateY,
             Staff staff
     ) {
-        super(mac, rssi, calibratedRssi1m, type, gatewayMac, gatewayLabel, gatewayFloor, gatewayCoordinateX, gatewayCoordinateY);
+        super(mac, rssi, type, gatewayMac, gatewayLabel, gatewayFloor, gatewayCoordinateX, gatewayCoordinateY);
         this.staff = staff;
     }
 

@@ -13,7 +13,6 @@ public class AssetStream extends Stream {
     public AssetStream(
             String mac,
             double rssi,
-            double calibratedRssi1m,
             BeaconType type,
             String gatewayMac,
             String gatewayLabel,
@@ -22,7 +21,7 @@ public class AssetStream extends Stream {
             double gatewayCoordinateY,
             Asset asset
     ) {
-        super(mac, rssi, calibratedRssi1m, type, gatewayMac, gatewayLabel, gatewayFloor, gatewayCoordinateX, gatewayCoordinateY);
+        super(mac, rssi, type, gatewayMac, gatewayLabel, gatewayFloor, gatewayCoordinateX, gatewayCoordinateY);
         this.asset = asset;
     }
 

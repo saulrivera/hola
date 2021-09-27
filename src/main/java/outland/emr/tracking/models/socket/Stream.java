@@ -5,7 +5,6 @@ import outland.emr.tracking.models.BeaconType;
 public class Stream {
     private String mac;
     private double rssi;
-    private double calibratedRssi1m;
     private BeaconType type;
     private String gatewayMac;
     private String gatewayLabel;
@@ -16,7 +15,6 @@ public class Stream {
     public Stream(
             String mac,
             double rssi,
-            double calibratedRssi1m,
             BeaconType type,
             String gatewayMac,
             String gatewayLabel,
@@ -26,7 +24,6 @@ public class Stream {
     ) {
         this.mac = mac;
         this.rssi = rssi;
-        this.calibratedRssi1m = calibratedRssi1m;
         this.type = type;
         this.gatewayMac = gatewayMac;
         this.gatewayFloor = gatewayFloor;
@@ -59,14 +56,6 @@ public class Stream {
 
     public void setRssi(double rssi) {
         this.rssi = rssi;
-    }
-
-    public double getCalibratedRssi1m() {
-        return calibratedRssi1m;
-    }
-
-    public void setCalibratedRssi1m(double calibratedRssi1m) {
-        this.calibratedRssi1m = calibratedRssi1m;
     }
     
     public BeaconType getType() {
