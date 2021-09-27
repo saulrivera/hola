@@ -106,12 +106,12 @@ public class TrackingManager {
             return;
         }
 
-        Set<String> nearMacGateways = lastGateway.getSiblings();
-        nearMacGateways.add(reading.getGatewayMac());
-
-        if (!nearMacGateways.contains(reading.getGatewayMac())) {
-            throw new Exception("Gateways is far from last seen source.");
-        }
+//        Set<String> nearMacGateways = lastGateway.getSiblings();
+//        nearMacGateways.add(reading.getGatewayMac());
+//
+//        if (!nearMacGateways.contains(reading.getGatewayMac())) {
+//            throw new Exception("Gateways is far from last seen source.");
+//        }
 
         KalmanFilter kalmanFilter;
         if (recordState.getGatewayParameters().isEmpty()) {
