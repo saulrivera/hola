@@ -1,5 +1,6 @@
 package outland.emr.tracking.repositories.redis;
 
+import outland.emr.tracking.models.redis.RecordState;
 import outland.emr.tracking.models.redis.StaffBeacon;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -41,5 +42,11 @@ public class RedisStaffBeaconRepository implements IRedisStaffBeaconRepository {
     @Override
     public void add(StaffBeacon staffBeacon) {
         hashOperations.put(table, staffBeacon.getBeaconId(), staffBeacon);
+    }
+
+    @Override
+    public void flush() {
+        Map<String, RecordState> records = hashOperations.entries(table);
+        records.keySet().forEach(key -> hashOperations.delete(table, key));
     }
 }

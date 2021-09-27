@@ -10,4 +10,5 @@ public interface IRedisStreamHistoryRepository {
     void removeFromTypeBeacon(BeaconType beaconType, String beaconId);
     void addStreamFromType(BeaconType beaconType, Stream stream);
     Map<BeaconType, List<Stream>> getHistory();
+    void flush();
 }

@@ -59,4 +59,8 @@ public class AssetLogic {
         this.mongoAssetRepository.findAll().stream().map(this::createRedis).forEach(this.redisAssetRepository::add);
         this.mongoAssetBeaconRepository.findAll().stream().map(this::createRedis).forEach(this.redisAssetBeaconRepository::add);
     }
+
+    public void flushTable() {
+
+    }
 }

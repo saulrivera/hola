@@ -62,4 +62,8 @@ public class GatewayLogic {
                 siblings
         );
     }
+
+    public void flushTable() {
+
+    }
 }

@@ -96,11 +96,18 @@ public class DataInit {
             }).forEach(patientLogic::add);
         }
 
+        beaconLogic.flushTable();
+        patientLogic.flushTable();
+        gatewayLogic.flushTable();
+        staffLogic.flushTable();
+        assetLogic.flushTable();
+
         beaconLogic.syncWithRedis();
         patientLogic.syncWithRedis();
         gatewayLogic.syncWithRedis();
         staffLogic.syncWithRedis();
         assetLogic.syncWithRedis();
+
         recordStateLogic.flushTable();
     }
 }

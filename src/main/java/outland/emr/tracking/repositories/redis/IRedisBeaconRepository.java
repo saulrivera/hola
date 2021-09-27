@@ -6,4 +6,5 @@ public interface IRedisBeaconRepository {
     boolean isBeaconPresent(String mac);
     Beacon findBeaconByMac(String mac);
     void add(Beacon beacon);
+    void flush();
 }

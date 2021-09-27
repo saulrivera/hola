@@ -5,4 +5,5 @@ import outland.emr.tracking.models.redis.Asset;
 public interface IRedisAssetRepository {
     Asset findById(String id);
     void add(Asset asset);
+    void flush();
 }

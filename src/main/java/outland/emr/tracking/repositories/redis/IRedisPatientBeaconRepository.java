@@ -12,4 +12,5 @@ public interface IRedisPatientBeaconRepository {
     Map<String, PatientBeacon> findAll();
     void add(PatientBeacon patientBeacon);
     void deleteByBeaconMac(String beaconId);
+    void flush();
 }

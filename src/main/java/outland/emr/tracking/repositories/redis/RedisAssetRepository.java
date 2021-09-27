@@ -4,6 +4,9 @@ import outland.emr.tracking.models.redis.Asset;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
+import outland.emr.tracking.models.redis.RecordState;
+
+import java.util.Map;
 
 @Repository
 public class RedisAssetRepository implements IRedisAssetRepository {
@@ -25,5 +28,11 @@ public class RedisAssetRepository implements IRedisAssetRepository {
     @Override
     public void add(Asset asset) {
         hashOperations.put(table, asset.getId(), asset);
+    }
+
+    @Override
+    public void flush() {
+        Map<String, RecordState> records = hashOperations.entries(table);
+        records.keySet().forEach(key -> hashOperations.delete(table, key));
     }
 }

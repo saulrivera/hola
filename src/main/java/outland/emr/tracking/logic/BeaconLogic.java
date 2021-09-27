@@ -172,4 +172,8 @@ public class BeaconLogic {
                 true
         );
     }
+
+    public void flushTable() {
+
+    }
 }

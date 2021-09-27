@@ -4,6 +4,7 @@ import outland.emr.tracking.models.redis.AssetBeacon;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
+import outland.emr.tracking.models.redis.RecordState;
 
 import java.util.Map;
 import java.util.Optional;
@@ -41,5 +42,11 @@ public class RedisAssetBeaconRepository implements IRedisAssetBeaconRepository {
     @Override
     public void add(AssetBeacon assetBeacon) {
         hashOperations.put(table, assetBeacon.getBeaconId(), assetBeacon);
+    }
+
+    @Override
+    public void flush() {
+        Map<String, RecordState> records = hashOperations.entries(table);
+        records.keySet().forEach(key -> hashOperations.delete(table, key));
     }
 }

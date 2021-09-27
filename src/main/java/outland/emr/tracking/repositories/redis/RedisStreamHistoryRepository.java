@@ -1,6 +1,7 @@
 package outland.emr.tracking.repositories.redis;
 
 import outland.emr.tracking.models.BeaconType;
+import outland.emr.tracking.models.redis.RecordState;
 import outland.emr.tracking.models.redis.StreamHistory;
 import outland.emr.tracking.models.socket.PatientStream;
 import outland.emr.tracking.models.socket.Stream;
@@ -74,5 +75,11 @@ public class RedisStreamHistoryRepository implements IRedisStreamHistoryReposito
         }
 
         return dictionary;
+    }
+
+    @Override
+    public void flush() {
+        Map<String, RecordState> records = hashOperations.entries(table);
+        records.keySet().forEach(key -> hashOperations.delete(table, key));
     }
 }

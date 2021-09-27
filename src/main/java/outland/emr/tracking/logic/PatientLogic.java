@@ -85,4 +85,8 @@ public class PatientLogic {
                 patient.getRoom()
         );
     }
+
+    public void flushTable() {
+
+    }
 }

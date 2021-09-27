@@ -6,4 +6,5 @@ public interface IRedisAssetBeaconRepository {
     AssetBeacon findByBeaconMac(String mac);
     AssetBeacon findByAssetId(String id);
     void add(AssetBeacon assetBeacon);
+    void flush();
 }

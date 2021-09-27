@@ -68,4 +68,8 @@ public class StaffLogic {
         this.mongoStaffRepository.findAll().stream().map(this::createRedis).forEach(this.redisStaffRepository::add);
         this.mongoStaffBeaconRepository.findAll().stream().map(this::createRedis).forEach(this.redisStaffBeaconRepository::add);
     }
+
+    public void flushTable() {
+
+    }
 }
