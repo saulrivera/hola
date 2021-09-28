@@ -169,7 +169,7 @@ public class BeaconLogic {
         return new outland.emr.tracking.models.redis.PatientBeacon(
                 patientBeacon.getPatientId(),
                 beaconMac,
-                true
+                patientBeacon.isActive()
         );
     }
 
