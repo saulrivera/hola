@@ -28,14 +28,14 @@ import java.util.Optional;
 public class ProcesserThreads extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(ProcesserThreads.class);
 
-    private static ApplicationContext applicationContext;
-
     private ProcessRecordsInput processRecordsInput;
 
     @Autowired
     private final TrackingManager trackingManager;
     @Autowired
     private final TrackingConfProperties trackingConfProperties;
+    @Autowired
+    private static ApplicationContext applicationContext;
 
     public ProcesserThreads(TrackingManager trackingManager, TrackingConfProperties trackingConfProperties) {
         this.trackingManager = trackingManager;
