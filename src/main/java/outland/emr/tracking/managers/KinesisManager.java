@@ -55,8 +55,8 @@ public class KinesisManager implements ShardRecordProcessor {
             MDC.put(SHARD_ID_MDC_KEY, shardId);
             logger.info("Processing " + processRecordsInput.records().size());
 
-            processRecordsInput.records().forEach(record -> {
-                new Thread(() -> {
+            new Thread(() -> {
+                processRecordsInput.records().forEach(record -> {
                     CharBuffer originalData = StandardCharsets.UTF_8.decode(record.data());
                     try {
                         Reading[] responses = new ObjectMapper().readValue(originalData.toString(), Reading[].class);
@@ -82,8 +82,8 @@ public class KinesisManager implements ShardRecordProcessor {
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }
-                }).start();
-            });
+                });
+            }).start();
 
             MDC.remove(SHARD_ID_MDC_KEY);
         }
