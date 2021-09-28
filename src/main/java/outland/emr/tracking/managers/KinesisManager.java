@@ -1,8 +1,6 @@
 package outland.emr.tracking.managers;
 
 import outland.emr.tracking.config.TrackingConfProperties;
-import outland.emr.tracking.logic.ProcesserThreads;
-import outland.emr.tracking.models.Detection;
 import outland.emr.tracking.models.DetectionType;
 import outland.emr.tracking.models.mongo.Reading;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,6 +26,16 @@ public class KinesisManager implements ShardRecordProcessor {
     private static String shardId = "";
     private static final Logger logger = LoggerFactory.getLogger(KinesisManager.class);
 
+    @Autowired
+    private final TrackingManager trackingManager;
+    @Autowired
+    private final TrackingConfProperties trackingConfProperties;
+
+    public KinesisManager(TrackingManager trackingManager, TrackingConfProperties trackingConfProperties) {
+        this.trackingManager = trackingManager;
+        this.trackingConfProperties = trackingConfProperties;
+    }
+
     @Override
     public void initialize(InitializationInput initializationInput) {
         if (initializationInput != null) {
@@ -47,8 +55,34 @@ public class KinesisManager implements ShardRecordProcessor {
             MDC.put(SHARD_ID_MDC_KEY, shardId);
             logger.info("Processing " + processRecordsInput.records().size());
 
-            var processerThreads = ProcesserThreads.getSingleton();
-            processerThreads.run();
+            processRecordsInput.records().forEach(record -> {
+                CharBuffer originalData = StandardCharsets.UTF_8.decode(record.data());
+                try {
+                    Reading[] responses = new ObjectMapper().readValue(originalData.toString(), Reading[].class);
+                    Optional<Reading> gatewayDetection = Arrays.stream(responses).filter(it -> it.getType().equals(DetectionType.Gateway)).findFirst();
+
+                    if (gatewayDetection.isEmpty()) {
+                        return;
+                    }
+
+                    Arrays.stream(responses).filter(it -> it.getType().equals(DetectionType.iBeacon)).forEach(reading -> {
+                        reading.setGatewayMac(gatewayDetection.get().getTrackingMac());
+
+                        try {
+                            if (reading.getUuid().equals(trackingConfProperties.getBeaconAlertId())) {
+                                trackingManager.alertEmittedBy(reading);
+                            } else {
+                                trackingManager.processBeaconStream(reading);
+                            }
+                        } catch (Exception e) {
+                            logger.error(e.getMessage());
+                        }
+                    });
+                    processRecordsInput.checkpointer().checkpoint();
+                } catch (JsonProcessingException | ShutdownException | InvalidStateException e) {
+                    e.printStackTrace();
+                }
+            });
 
             MDC.remove(SHARD_ID_MDC_KEY);
         }
