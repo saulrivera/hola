@@ -1,6 +1,7 @@
 package outland.emr.tracking.schedulers;
 
 import outland.emr.tracking.managers.StreamManager;
+import outland.emr.tracking.managers.ThreadManager;
 import outland.emr.tracking.websockets.TrackingSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +18,13 @@ public class BroadcastStreamScheduler {
     private final StreamManager streamManager;
     @Autowired
     private final TrackingSocket trackingSocket;
+    @Autowired
+    private final ThreadManager threadManager;
 
-    public BroadcastStreamScheduler(StreamManager streamManager, TrackingSocket trackingSocket) {
+    public BroadcastStreamScheduler(StreamManager streamManager, TrackingSocket trackingSocket, ThreadManager threadManager) {
         this.streamManager = streamManager;
         this.trackingSocket = trackingSocket;
+        this.threadManager = threadManager;
     }
 
     @Scheduled(fixedRate = 1000)
@@ -41,5 +45,6 @@ public class BroadcastStreamScheduler {
             }
         });
         streamManager.clearStreamStack();
+        threadManager.flushThreads();
     }
 }

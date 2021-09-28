@@ -30,10 +30,13 @@ public class KinesisManager implements ShardRecordProcessor {
     private final TrackingManager trackingManager;
     @Autowired
     private final TrackingConfProperties trackingConfProperties;
+    @Autowired
+    private final ThreadManager threadManager;
 
-    public KinesisManager(TrackingManager trackingManager, TrackingConfProperties trackingConfProperties) {
+    public KinesisManager(TrackingManager trackingManager, TrackingConfProperties trackingConfProperties, ThreadManager threadManager) {
         this.trackingManager = trackingManager;
         this.trackingConfProperties = trackingConfProperties;
+        this.threadManager = threadManager;
     }
 
     @Override
@@ -56,7 +59,7 @@ public class KinesisManager implements ShardRecordProcessor {
             logger.info("Processing " + processRecordsInput.records().size());
 
             processRecordsInput.records().forEach(record -> {
-                new Thread(() -> {
+                var thread  = new Thread(() -> {
                     CharBuffer originalData = StandardCharsets.UTF_8.decode(record.data());
                     try {
                         Reading[] responses = new ObjectMapper().readValue(originalData.toString(), Reading[].class);
@@ -82,7 +85,9 @@ public class KinesisManager implements ShardRecordProcessor {
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }
-                }).start();
+                });
+                thread.start();
+                threadManager.addToThread(thread);
             });
 
             MDC.remove(SHARD_ID_MDC_KEY);
