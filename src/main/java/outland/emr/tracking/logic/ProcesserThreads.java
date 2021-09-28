@@ -7,8 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import outland.emr.tracking.config.TrackingConfProperties;
 import outland.emr.tracking.managers.StreamManager;
@@ -25,6 +27,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 @Component
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ProcesserThreads extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(ProcesserThreads.class);
 
