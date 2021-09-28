@@ -55,35 +55,33 @@ public class KinesisManager implements ShardRecordProcessor {
             MDC.put(SHARD_ID_MDC_KEY, shardId);
             logger.info("Processing " + processRecordsInput.records().size());
 
-            new Thread(() -> {
-                processRecordsInput.records().forEach(record -> {
-                    CharBuffer originalData = StandardCharsets.UTF_8.decode(record.data());
-                    try {
-                        Reading[] responses = new ObjectMapper().readValue(originalData.toString(), Reading[].class);
-                        Optional<Reading> gatewayDetection = Arrays.stream(responses).filter(it -> it.getType().equals(DetectionType.Gateway)).findFirst();
+            processRecordsInput.records().forEach(record -> {
+                CharBuffer originalData = StandardCharsets.UTF_8.decode(record.data());
+                try {
+                    Reading[] responses = new ObjectMapper().readValue(originalData.toString(), Reading[].class);
+                    Optional<Reading> gatewayDetection = Arrays.stream(responses).filter(it -> it.getType().equals(DetectionType.Gateway)).findFirst();
 
-                        if (gatewayDetection.isEmpty()) {
-                            return;
-                        }
-
-                        Arrays.stream(responses).filter(it -> it.getType().equals(DetectionType.iBeacon)).forEach(reading -> {
-                            reading.setGatewayMac(gatewayDetection.get().getTrackingMac());
-
-                            try {
-                                if (reading.getUuid().equals(trackingConfProperties.getBeaconAlertId())) {
-                                    trackingManager.alertEmittedBy(reading);
-                                } else {
-                                    trackingManager.processBeaconStream(reading);
-                                }
-                            } catch (Exception e) {
-                                logger.error(e.getMessage());
-                            }
-                        });
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
+                    if (gatewayDetection.isEmpty()) {
+                        return;
                     }
-                });
-            }).start();
+
+                    Arrays.stream(responses).filter(it -> it.getType().equals(DetectionType.iBeacon)).forEach(reading -> {
+                        reading.setGatewayMac(gatewayDetection.get().getTrackingMac());
+
+                        try {
+                            if (reading.getUuid().equals(trackingConfProperties.getBeaconAlertId())) {
+                                trackingManager.alertEmittedBy(reading);
+                            } else {
+                                trackingManager.processBeaconStream(reading);
+                            }
+                        } catch (Exception e) {
+                            logger.error(e.getMessage());
+                        }
+                    });
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+            });
 
             MDC.remove(SHARD_ID_MDC_KEY);
         }

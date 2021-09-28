@@ -21,8 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class StreamManager {
-    private final Map<String, Stream> streamQueue = new HashMap<>();
-    private final Map<String, LocalDateTime> alertPatientQueue = new HashMap<>();
+    private final Map<String, Stream> streamQueue = new ConcurrentHashMap<>();
+    private final Map<String, LocalDateTime> alertPatientQueue = new ConcurrentHashMap<>();
 
     private static final Logger logger = LoggerFactory.getLogger(StreamManager.class);
 
