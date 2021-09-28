@@ -23,7 +23,7 @@ public class BroadcastStreamScheduler {
         this.trackingSocket = trackingSocket;
     }
 
-    @Scheduled(fixedRate = 1000)
+    @Scheduled(fixedRate = 500)
     public void emit() {
         broadcastStreams();
     }
