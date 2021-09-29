@@ -3,9 +3,11 @@ package outland.emr.tracking.models.mongo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.joda.time.DateTime;
 import org.springframework.data.annotation.Id;
 import outland.emr.tracking.models.Detection;
 
+import java.util.Date;
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -13,7 +15,7 @@ public class Reading extends Detection {
     @Id
     private String id = UUID.randomUUID().toString();
     @JsonProperty("timestamp")
-    private String timestamp;
+    private DateTime timestamp;
     @JsonProperty("rssi")
     private double rssi;
     @JsonProperty("ibeaconUuid")
@@ -26,11 +28,11 @@ public class Reading extends Detection {
     @JsonIgnore
     public void setId(String id) { this.id = id; }
 
-    public String getTimestamp() {
+    public DateTime getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(String timestamp) {
+    public void setTimestamp(DateTime timestamp) {
         this.timestamp = timestamp;
     }
 

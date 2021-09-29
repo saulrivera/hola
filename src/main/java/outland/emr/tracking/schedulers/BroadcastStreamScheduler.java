@@ -1,5 +1,6 @@
 package outland.emr.tracking.schedulers;
 
+import org.joda.time.DateTime;
 import outland.emr.tracking.managers.StreamManager;
 import outland.emr.tracking.managers.ThreadManager;
 import outland.emr.tracking.websockets.TrackingSocket;
@@ -10,6 +11,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.stream.Collectors;
 
 @Component
 public class BroadcastStreamScheduler {
@@ -37,13 +41,18 @@ public class BroadcastStreamScheduler {
         if(!streamQueue.isEmpty()) {
             logger.info("Emitting elements");
         }
-        streamQueue.forEach(it -> {
-            try {
-                trackingSocket.broadcastTracking(it);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+
+        Date dt = DateTime.now().minusMillis(1000).toDate();
+        streamQueue
+            .stream()
+            .filter(it -> it.getTimestamp().toDate().after(dt))
+            .forEach(it -> {
+                try {
+                    trackingSocket.broadcastTracking(it);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         streamManager.clearStreamStack();
     }
 

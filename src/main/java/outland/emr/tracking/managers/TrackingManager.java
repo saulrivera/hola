@@ -183,7 +183,8 @@ public class TrackingManager {
                             gateway.getFloor(),
                             gateway.getCoordinateX(),
                             gateway.getCoordinateY(),
-                            patient
+                            patient,
+                            reading.getTimestamp()
                     );
                     _streamManager.add(patientStream);
                     break;
@@ -200,7 +201,8 @@ public class TrackingManager {
                             gateway.getFloor(),
                             gateway.getCoordinateX(),
                             gateway.getCoordinateY(),
-                            staff
+                            staff,
+                            reading.getTimestamp()
                     );
                     _streamManager.add(staffStream);
                     break;
@@ -217,7 +219,8 @@ public class TrackingManager {
                             gateway.getFloor(),
                             gateway.getCoordinateX(),
                             gateway.getCoordinateY(),
-                            asset
+                            asset,
+                            reading.getTimestamp()
                     );
                     _streamManager.add(assetStream);
                     break;
@@ -256,7 +259,8 @@ public class TrackingManager {
                 gateway.getFloor(),
                 gateway.getCoordinateX(),
                 gateway.getCoordinateY(),
-                patient
+                patient,
+                reading.getTimestamp()
         );
 
         _streamManager.sendPatientAlert(stream);

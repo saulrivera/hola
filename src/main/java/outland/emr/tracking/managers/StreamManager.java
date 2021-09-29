@@ -1,5 +1,6 @@
 package outland.emr.tracking.managers;
 
+import org.joda.time.DateTime;
 import outland.emr.tracking.models.BeaconType;
 import outland.emr.tracking.models.socket.PatientStream;
 import outland.emr.tracking.models.socket.Stream;
@@ -77,7 +78,8 @@ public class StreamManager {
                 gateway.getFloor(),
                 gateway.getCoordinateX(),
                 gateway.getCoordinateY(),
-                patient
+                patient,
+                DateTime.now()
         );
     }
 

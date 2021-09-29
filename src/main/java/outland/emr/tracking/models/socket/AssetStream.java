@@ -1,5 +1,6 @@
 package outland.emr.tracking.models.socket;
 
+import org.joda.time.DateTime;
 import outland.emr.tracking.models.BeaconType;
 import outland.emr.tracking.models.redis.Asset;
 
@@ -19,9 +20,10 @@ public class AssetStream extends Stream {
             int gatewayFloor,
             double gatewayCoordinateX,
             double gatewayCoordinateY,
-            Asset asset
+            Asset asset,
+            DateTime timestamp
     ) {
-        super(mac, rssi, type, gatewayMac, gatewayLabel, gatewayFloor, gatewayCoordinateX, gatewayCoordinateY);
+        super(mac, rssi, type, gatewayMac, gatewayLabel, gatewayFloor, gatewayCoordinateX, gatewayCoordinateY, timestamp);
         this.asset = asset;
     }
 
