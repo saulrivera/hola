@@ -72,18 +72,13 @@ public class KinesisManager implements ShardRecordProcessor {
                     try {
                         Reading[] responses = new ObjectMapper().readValue(originalData.toString(), Reading[].class);
 
-                        Date dt = DateTime.now().minusMillis(1000).toDate();
-                        var filteredResponses = Arrays.stream(responses)
-                                .filter(it -> it.getTimestamp().after(dt))
-                                .collect(Collectors.toList());
-
                         Optional<Reading> gatewayDetection = Arrays.stream(responses).filter(it -> it.getType().equals(DetectionType.Gateway)).findFirst();
 
                         if (gatewayDetection.isEmpty()) {
                             return;
                         }
 
-                        filteredResponses.stream().filter(it -> it.getType().equals(DetectionType.iBeacon)).forEach(reading -> {
+                        Arrays.stream(responses).filter(it -> it.getType().equals(DetectionType.iBeacon)).forEach(reading -> {
                             reading.setGatewayMac(gatewayDetection.get().getTrackingMac());
 
                             try {

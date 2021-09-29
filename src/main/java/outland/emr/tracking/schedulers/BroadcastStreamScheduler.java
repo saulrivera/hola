@@ -39,10 +39,7 @@ public class BroadcastStreamScheduler {
     public void broadcastStreams() {
         var streamQueue = streamManager.getStreams();
 
-        Date dt = DateTime.now().minusMillis(1000).toDate();
         streamQueue
-            .stream()
-            .filter(it -> it.getTimestamp().after(dt))
             .forEach(it -> {
                 System.out.println("Emitting element: " + it);
                 try {
