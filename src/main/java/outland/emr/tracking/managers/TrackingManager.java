@@ -76,8 +76,6 @@ public class TrackingManager {
     }
 
     public void processBeaconStream(Reading reading) throws Exception {
-        _mongoReadingRepository.save(reading);
-
         Beacon beacon = _redisBeaconRepository.findBeaconByMac(reading.getTrackingMac());
         if (beacon == null) {
             System.out.println("Beacon doesn't exist: " + reading.getTrackingMac());
@@ -165,6 +163,8 @@ public class TrackingManager {
         recordState.setRssi(minimumReading.getValue().getX());
 
         if (!isPresent || needsBroadcast) {
+            _mongoReadingRepository.save(reading);
+
             recordState.setGatewayMac(minimumReading.getKey());
 
             Gateway gateway = _redisGatewayRepository.findByMac(recordState.getGatewayMac());

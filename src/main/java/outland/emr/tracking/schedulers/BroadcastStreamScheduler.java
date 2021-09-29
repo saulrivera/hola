@@ -51,7 +51,7 @@ public class BroadcastStreamScheduler {
         streamManager.clearStreamStack();
     }
 
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = 2500)
     public void flushThreads() {
         threadManager.flushThreads();
     }
