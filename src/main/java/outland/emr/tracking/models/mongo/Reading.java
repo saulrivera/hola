@@ -17,7 +17,7 @@ public class Reading extends Detection {
     @Id
     private String id = UUID.randomUUID().toString();
     @JsonProperty("timestamp")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private Date timestamp;
     @JsonProperty("rssi")
     private double rssi;
