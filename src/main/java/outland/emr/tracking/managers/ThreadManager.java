@@ -2,12 +2,12 @@ package outland.emr.tracking.managers;
 
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Component
 public class ThreadManager {
-    private List<Thread> listOfThreads = new ArrayList<>();
+    private final Queue<Thread> listOfThreads = new ConcurrentLinkedQueue<>();
 
     public void addToThread(Thread thread) {
         listOfThreads.add(thread);
@@ -15,7 +15,7 @@ public class ThreadManager {
 
     public void flushThreads() {
         for (int i = 0; i < (long) listOfThreads.size(); i++) {
-            listOfThreads.get(i).interrupt();
+            listOfThreads.peek().interrupt();
         }
         listOfThreads.clear();
     }

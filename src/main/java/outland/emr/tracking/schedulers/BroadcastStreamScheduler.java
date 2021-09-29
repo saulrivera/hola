@@ -45,6 +45,10 @@ public class BroadcastStreamScheduler {
             }
         });
         streamManager.clearStreamStack();
+    }
+
+    @Scheduled(fixedRate = 3000)
+    public void flushThreads() {
         threadManager.flushThreads();
     }
 }
