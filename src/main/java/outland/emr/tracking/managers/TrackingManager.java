@@ -151,7 +151,7 @@ public class TrackingManager {
 
         List<String> keysToIgnore = new ArrayList<>();
         recordState.getGatewayParameters().forEach((key, value) -> {
-           if (DateTime.now().minusSeconds(10).toDate().before(value.getTimestamp())) {
+           if (DateTime.now().minusSeconds(4).toDate().before(value.getTimestamp())) {
                keysToIgnore.add(key);
            }
         });
