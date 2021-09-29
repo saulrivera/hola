@@ -14,6 +14,7 @@ import outland.emr.tracking.models.mongo.Staff;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Configuration
 public class DataInit {
@@ -91,8 +92,8 @@ public class DataInit {
         }
 
         if (patientLogic.isTableEmpty()) {
-            List.of(1,2,3,4,5,6,7,8,9,10).forEach(it -> {
-                var patient = new Patient("Patient", it.toString());
+            IntStream.rangeClosed(1, 10).forEach(it -> {
+                var patient = new Patient("Patient", "" + it);
                 patientLogic.add(patient);
             });
         }
