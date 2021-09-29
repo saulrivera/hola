@@ -4,6 +4,8 @@ import org.joda.time.DateTime;
 import outland.emr.tracking.models.BeaconType;
 import outland.emr.tracking.models.redis.Staff;
 
+import java.util.Date;
+
 public class StaffStream extends Stream {
     private Staff staff;
 
@@ -19,7 +21,7 @@ public class StaffStream extends Stream {
             double gatewayCoordinateX,
             double gatewayCoordinateY,
             Staff staff,
-            DateTime timestamp
+            Date timestamp
     ) {
         super(mac, rssi, type, gatewayMac, gatewayLabel, gatewayFloor, gatewayCoordinateX, gatewayCoordinateY, timestamp);
         this.staff = staff;

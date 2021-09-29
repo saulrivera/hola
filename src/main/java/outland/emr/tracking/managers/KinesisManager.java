@@ -74,7 +74,7 @@ public class KinesisManager implements ShardRecordProcessor {
 
                         Date dt = DateTime.now().minusMillis(1000).toDate();
                         var filteredResponses = Arrays.stream(responses)
-                                .filter(it -> it.getTimestamp().toDate().after(dt))
+                                .filter(it -> it.getTimestamp().after(dt))
                                 .collect(Collectors.toList());
 
                         Optional<Reading> gatewayDetection = Arrays.stream(responses).filter(it -> it.getType().equals(DetectionType.Gateway)).findFirst();

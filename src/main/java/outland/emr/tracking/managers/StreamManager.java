@@ -79,7 +79,7 @@ public class StreamManager {
                 gateway.getCoordinateX(),
                 gateway.getCoordinateY(),
                 patient,
-                DateTime.now()
+                DateTime.now().toDate()
         );
     }
 

@@ -1,7 +1,8 @@
 package outland.emr.tracking.models.socket;
 
-import org.joda.time.DateTime;
 import outland.emr.tracking.models.BeaconType;
+
+import java.util.Date;
 
 public class Stream {
     private String mac;
@@ -12,7 +13,7 @@ public class Stream {
     private int gatewayFloor;
     private double gatewayCoordinateX;
     private double gatewayCoordinateY;
-    private DateTime timestamp;
+    private Date timestamp;
 
     public Stream(
             String mac,
@@ -23,7 +24,7 @@ public class Stream {
             int gatewayFloor,
             double gatewayCoordinateX,
             double gatewayCoordinateY,
-            DateTime timestamp
+            Date timestamp
     ) {
         this.mac = mac;
         this.rssi = rssi;
@@ -102,11 +103,11 @@ public class Stream {
         this.gatewayCoordinateY = gatewayCoordinateY;
     }
 
-    public DateTime getTimestamp() {
+    public Date getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(DateTime timestamp) {
+    public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
 }

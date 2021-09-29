@@ -4,6 +4,8 @@ import org.joda.time.DateTime;
 import outland.emr.tracking.models.BeaconType;
 import outland.emr.tracking.models.redis.Patient;
 
+import java.util.Date;
+
 public class PatientStream extends Stream {
     Patient patient;
 
@@ -19,7 +21,7 @@ public class PatientStream extends Stream {
             double gatewayCoordinateX,
             double gatewayCoordinateY,
             Patient patient,
-            DateTime timestamp
+            Date timestamp
     ) {
         super(mac, rssi, type, gatewayMac, gatewayLabel, gatewayFloor, gatewayCoordinateX, gatewayCoordinateY, timestamp);
         this.patient = patient;

@@ -45,7 +45,7 @@ public class BroadcastStreamScheduler {
         Date dt = DateTime.now().minusMillis(1000).toDate();
         streamQueue
             .stream()
-            .filter(it -> it.getTimestamp().toDate().after(dt))
+            .filter(it -> it.getTimestamp().after(dt))
             .forEach(it -> {
                 try {
                     trackingSocket.broadcastTracking(it);
