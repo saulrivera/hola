@@ -1,5 +1,8 @@
 package outland.emr.tracking.managers;
 
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import outland.emr.tracking.config.TrackingConfProperties;
 import outland.emr.tracking.models.BeaconType;
 import outland.emr.tracking.models.mongo.Reading;
@@ -145,6 +148,15 @@ public class TrackingManager {
                 kalmanFilter.getCov(),
                 clearedRssi
         );
+
+        List<String> keysToIgnore = new ArrayList<>();
+        recordState.getGatewayParameters().forEach((key, value) -> {
+           if (DateTime.now().minusSeconds(10).toDate().before(value.getTimestamp())) {
+               keysToIgnore.add(key);
+           }
+        });
+        keysToIgnore.forEach(it -> recordState.getGatewayParameters().remove(it));
+
         recordState.getGatewayParameters().put(reading.getGatewayMac(), updatedParameters);
 
         Optional<Map.Entry<String, RecordStateGatewayParameters>> minimumReadingOptional = recordState.getGatewayParameters()

@@ -1,6 +1,7 @@
 package outland.emr.tracking.models.redis;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class RecordStateGatewayParameters implements Serializable {
     private double a;
@@ -8,6 +9,7 @@ public class RecordStateGatewayParameters implements Serializable {
     private double c;
     private double cov;
     private double x;
+    private Date timestamp;
 
     public RecordStateGatewayParameters() {}
 
@@ -17,6 +19,7 @@ public class RecordStateGatewayParameters implements Serializable {
         this.c = c;
         this.cov = cov;
         this.x = x;
+        this.timestamp = new Date();
     }
 
     public double getA() {
@@ -57,5 +60,13 @@ public class RecordStateGatewayParameters implements Serializable {
 
     public void setX(double x) {
         this.x = x;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
     }
 }
