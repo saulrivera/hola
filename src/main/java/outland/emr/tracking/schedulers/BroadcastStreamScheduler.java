@@ -38,15 +38,13 @@ public class BroadcastStreamScheduler {
 
     public void broadcastStreams() {
         var streamQueue = streamManager.getStreams();
-        if(!streamQueue.isEmpty()) {
-            logger.info("Emitting elements");
-        }
 
         Date dt = DateTime.now().minusMillis(1000).toDate();
         streamQueue
             .stream()
             .filter(it -> it.getTimestamp().after(dt))
             .forEach(it -> {
+                System.out.println("Emitting element: " + it);
                 try {
                     trackingSocket.broadcastTracking(it);
                 } catch (IOException e) {
@@ -56,7 +54,7 @@ public class BroadcastStreamScheduler {
         streamManager.clearStreamStack();
     }
 
-    @Scheduled(fixedRate = 3000)
+    @Scheduled(fixedRate = 5000)
     public void flushThreads() {
         threadManager.flushThreads();
     }
