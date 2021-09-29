@@ -8,6 +8,7 @@ import com.fasterxml.jackson.datatype.joda.deser.DateTimeDeserializer;
 import org.joda.time.DateTime;
 import org.springframework.data.annotation.Id;
 import outland.emr.tracking.models.Detection;
+import outland.emr.tracking.utils.MyDateTimeDeserializer;
 
 import java.util.Date;
 import java.util.UUID;
@@ -17,7 +18,7 @@ public class Reading extends Detection {
     @Id
     private String id = UUID.randomUUID().toString();
     @JsonProperty("timestamp")
-    @JsonDeserialize(using = DateTimeDeserializer.class)
+    @JsonDeserialize(using = MyDateTimeDeserializer.class)
     private DateTime timestamp;
     @JsonProperty("rssi")
     private double rssi;
