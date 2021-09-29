@@ -149,13 +149,13 @@ public class TrackingManager {
                 clearedRssi
         );
 
-        List<String> keysToIgnore = new ArrayList<>();
-        recordState.getGatewayParameters().forEach((key, value) -> {
-           if (DateTime.now().minusSeconds(4).toDate().before(value.getTimestamp())) {
-               keysToIgnore.add(key);
-           }
-        });
-        keysToIgnore.forEach(it -> recordState.getGatewayParameters().remove(it));
+//        List<String> keysToIgnore = new ArrayList<>();
+//        recordState.getGatewayParameters().forEach((key, value) -> {
+//           if (DateTime.now().minusSeconds(4).toDate().before(value.getTimestamp())) {
+//               keysToIgnore.add(key);
+//           }
+//        });
+//        keysToIgnore.forEach(it -> recordState.getGatewayParameters().remove(it));
 
         recordState.getGatewayParameters().put(reading.getGatewayMac(), updatedParameters);
 
