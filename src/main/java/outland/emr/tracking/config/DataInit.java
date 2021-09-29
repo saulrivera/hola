@@ -91,9 +91,10 @@ public class DataInit {
         }
 
         if (patientLogic.isTableEmpty()) {
-            Arrays.stream(new Patient[] {
-                    new Patient("Saul", "Gerardo", "Rivera", "42", "123-456-7890", "super@outlandhq.com")
-            }).forEach(patientLogic::add);
+            List.of(1,2,3,4,5,6,7,8,9,10).forEach(it -> {
+                var patient = new Patient("Patient", it.toString());
+                patientLogic.add(patient);
+            });
         }
 
         beaconLogic.flushTable();

@@ -16,6 +16,12 @@ public class Patient {
 
     public Patient() {}
 
+    public Patient(String firstName, String lastName) {
+        this.id = UUID.randomUUID().toString();
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
     public Patient(String id, String firstName, String middleName, String lastName, String room, String contactPhone, String contactEmail) {
         this(firstName, middleName, lastName, room, contactPhone, contactEmail);
         this.id = id;
