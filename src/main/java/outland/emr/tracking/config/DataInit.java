@@ -13,6 +13,7 @@ import outland.emr.tracking.models.mongo.Staff;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -95,6 +96,11 @@ public class DataInit {
             IntStream.rangeClosed(1, 25).forEach(it -> {
                 var patient = new Patient("Patient", "" + it);
                 patientLogic.add(patient);
+
+                Optional<Beacon> beaconToAssociate = beacons.stream()
+                        .filter(ut -> ut.getId().equals(String.valueOf(300 + it)))
+                        .findFirst();
+                beaconToAssociate.ifPresent(beacon -> beaconLogic.associate(patient.getId(), beacon.getLabel()));
             });
         }
 

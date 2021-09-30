@@ -1,2 +1,4 @@
 id,firstName,middleName,lastName,kind,beaconId
 1,Shlomi,,Saporta,PROVIDER,201
+2,Luis,,RABBE,NURSE,202
+3,Saul,,RIVERA,HOSPITALITY,203
