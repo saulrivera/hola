@@ -92,7 +92,7 @@ public class DataInit {
         }
 
         if (patientLogic.isTableEmpty()) {
-            IntStream.rangeClosed(1, 10).forEach(it -> {
+            IntStream.rangeClosed(1, 25).forEach(it -> {
                 var patient = new Patient("Patient", "" + it);
                 patientLogic.add(patient);
             });
